@@ -1058,7 +1058,7 @@
     <!-- New Events Section (only for Sales mode) -->
     <div id="new-events-section" class="new-events-section" style="display:none;">
       <div class="new-events-title">
-        🆕 Новые события за последние 3 дня
+        🆕 Новые события за последнюю неделю
         <span class="count" id="new-events-count">0</span>
       </div>
       <div class="new-events-list" id="new-events-list"></div>
@@ -1363,16 +1363,16 @@
           }
         }
 
-        // For Sales mode, find new events (created in last 3 days)
+        // For Sales mode, find new events (created in last 7 days)
         if (selectedPurpose === 'sales') {
-          const threeDaysAgo = new Date();
-          threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-          const threeDaysAgoStr = threeDaysAgo.toISOString().substring(0, 10);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          const weekAgoStr = weekAgo.toISOString().substring(0, 10);
 
           newEvents = allData.filter(e => {
             if (!e.created_at) return false;
             const created = e.created_at.substring(0, 10);
-            return created >= threeDaysAgoStr;
+            return created >= weekAgoStr;
           });
           renderNewEvents();
         }
@@ -1409,7 +1409,7 @@
       });
 
       if (sortedNew.length === 0) {
-        listEl.innerHTML = '<p style="color:#666;font-size:13px;">Нет новых событий за последние 3 дня</p>';
+        listEl.innerHTML = '<p style="color:#666;font-size:13px;">Нет новых событий за последнюю неделю</p>';
         return;
       }
 
@@ -2252,7 +2252,7 @@
             • <span style="color:#888;"><b>10-20 апреля</b></span> — диапазон дат (короткая форма)<br>
             • <span style="color:#888;">в марте</span> — весь месяц<br>
             • <span style="color:#888;">на следующей неделе</span> — период<br>
-            • <span style="color:#888;">новые события</span> — за 3 дня<br><br>
+            • <span style="color:#888;">новые события</span> — за неделю<br><br>
 
             <b style="color:#FF6B00;">Debug команды:</b><br>
             • <span style="color:#888;">города</span> — список городов в базе<br>
@@ -2460,11 +2460,11 @@
 
       // Check for "новые" / "новых"
       if (queryLower.includes('нов')) {
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        const threeDaysAgoStr = threeDaysAgo.toISOString().substring(0, 10);
-        results = results.filter(e => e.created_at && e.created_at.substring(0, 10) >= threeDaysAgoStr);
-        appliedFilters.push(`новые за 3 дня`);
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekAgoStr = weekAgo.toISOString().substring(0, 10);
+        results = results.filter(e => e.created_at && e.created_at.substring(0, 10) >= weekAgoStr);
+        appliedFilters.push(`новые за неделю`);
       }
 
       // 4. Price filters
