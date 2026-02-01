@@ -865,10 +865,11 @@
       </div>
       <div class="ai-search-examples">
         Примеры:
-        <span onclick="setAiQuery('концерты в Москве на следующей неделе')">концерты в Москве</span>
-        <span onclick="setAiQuery('стендап в Алматы дешевле 5000')">стендап дешевле 5000</span>
-        <span onclick="setAiQuery('театр в Санкт-Петербурге в марте')">театр в марте</span>
-        <span onclick="setAiQuery('новые события за сегодня')">новые за сегодня</span>
+        <span onclick="setAiQuery('концерты в Москве')">концерты в Москве</span>
+        <span onclick="setAiQuery('с 10 марта по 25 марта')">с 10 по 25 марта</span>
+        <span onclick="setAiQuery('стендап дешевле 5000')">стендап дешевле 5000</span>
+        <span onclick="setAiQuery('в апреле')">в апреле</span>
+        <span onclick="setAiQuery('помощь')">помощь</span>
       </div>
       <div class="ai-search-results" id="ai-search-results">
         <div class="ai-search-results-info" id="ai-search-info"></div>
@@ -1241,18 +1242,33 @@
     }
 
     function populateFilters() {
-      const cities = [...new Set(allData.map(e => e.city).filter(Boolean))].sort();
-      document.getElementById('filter-city').innerHTML = '<option value="">Все города (' + cities.length + ')</option>' +
-        cities.map(c => `<option value="${c}">${c}</option>`).join('');
+      // Считаем количество событий по городам
+      const cityCounts = {};
+      allData.forEach(e => {
+        if (e.city) cityCounts[e.city] = (cityCounts[e.city] || 0) + 1;
+      });
 
-      const venues = [...new Set(allData.map(e => e.venue).filter(Boolean))].sort();
+      // Сортируем города по количеству событий (по убыванию)
+      const cities = Object.keys(cityCounts).sort((a, b) => cityCounts[b] - cityCounts[a]);
+
+      document.getElementById('filter-city').innerHTML = '<option value="">Все города (' + cities.length + ')</option>' +
+        cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
+
+      // Считаем количество событий по площадкам
+      const venueCounts = {};
+      allData.forEach(e => {
+        if (e.venue) venueCounts[e.venue] = (venueCounts[e.venue] || 0) + 1;
+      });
+
+      // Сортируем площадки по количеству событий
+      const venues = Object.keys(venueCounts).sort((a, b) => venueCounts[b] - venueCounts[a]);
       document.getElementById('filter-venue').innerHTML = '<option value="">Все площадки (' + venues.length + ')</option>' +
-        venues.map(v => `<option value="${v}">${v}</option>`).join('');
+        venues.map(v => `<option value="${v}">${v} (${venueCounts[v]})</option>`).join('');
 
       // Populate competitor city dropdown (for Marketing mode)
       if (selectedPurpose === 'marketing') {
         document.getElementById('competitor-city').innerHTML = '<option value="">Выберите город</option>' +
-          cities.map(c => `<option value="${c}">${c}</option>`).join('');
+          cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
       }
     }
 
@@ -1270,8 +1286,22 @@
         if (search && !event.title?.toLowerCase().includes(search) && !event.venue?.toLowerCase().includes(search)) return false;
         if (city && event.city !== city) return false;
         if (venue && event.venue !== venue) return false;
-        if (dateFrom && event.date_from && event.date_from < dateFrom) return false;
-        if (dateTo && event.date_from && event.date_from > dateTo) return false;
+
+        // Фильтр по дате события - учитываем диапазон события (date_from - date_to)
+        // Событие попадает если его диапазон пересекается с выбранным периодом
+        if (dateFrom || dateTo) {
+          const eventStart = event.date_from;
+          const eventEnd = event.date_to || event.date_from; // если нет date_to, используем date_from
+
+          if (!eventStart) return false; // нет даты - не показываем
+
+          // Событие НЕ попадает если:
+          // - оно заканчивается ДО начала фильтра (eventEnd < dateFrom)
+          // - оно начинается ПОСЛЕ конца фильтра (eventStart > dateTo)
+          if (dateFrom && eventEnd && eventEnd < dateFrom) return false;
+          if (dateTo && eventStart > dateTo) return false;
+        }
+
         if (createdFrom && event.created_at) {
           if (event.created_at.substring(0, 10) < createdFrom) return false;
         }
@@ -1315,6 +1345,80 @@
       return rawPrice;
     }
 
+    // Перевод городов на русский
+    const CITY_TO_RUSSIAN = {
+      'moscow': 'Москва', 'Moscow': 'Москва',
+      'saint petersburg': 'Санкт-Петербург', 'Saint Petersburg': 'Санкт-Петербург', 'St. Petersburg': 'Санкт-Петербург', 'St Petersburg': 'Санкт-Петербург',
+      'yekaterinburg': 'Екатеринбург', 'Yekaterinburg': 'Екатеринбург', 'Ekaterinburg': 'Екатеринбург',
+      'novosibirsk': 'Новосибирск', 'Novosibirsk': 'Новосибирск',
+      'kazan': 'Казань', 'Kazan': 'Казань',
+      'nizhny novgorod': 'Нижний Новгород', 'Nizhny Novgorod': 'Нижний Новгород',
+      'samara': 'Самара', 'Samara': 'Самара',
+      'rostov-on-don': 'Ростов-на-Дону', 'Rostov-on-Don': 'Ростов-на-Дону', 'Rostov': 'Ростов-на-Дону',
+      'krasnodar': 'Краснодар', 'Krasnodar': 'Краснодар',
+      'sochi': 'Сочи', 'Sochi': 'Сочи',
+      'voronezh': 'Воронеж', 'Voronezh': 'Воронеж',
+      'ufa': 'Уфа', 'Ufa': 'Уфа',
+      'krasnoyarsk': 'Красноярск', 'Krasnoyarsk': 'Красноярск',
+      'perm': 'Пермь', 'Perm': 'Пермь',
+      'volgograd': 'Волгоград', 'Volgograd': 'Волгоград',
+      'saratov': 'Саратов', 'Saratov': 'Саратов',
+      'tyumen': 'Тюмень', 'Tyumen': 'Тюмень',
+      'chelyabinsk': 'Челябинск', 'Chelyabinsk': 'Челябинск',
+      'omsk': 'Омск', 'Omsk': 'Омск',
+      'kaliningrad': 'Калининград', 'Kaliningrad': 'Калининград',
+      'vladivostok': 'Владивосток', 'Vladivostok': 'Владивосток',
+      'irkutsk': 'Иркутск', 'Irkutsk': 'Иркутск',
+      'khabarovsk': 'Хабаровск', 'Khabarovsk': 'Хабаровск',
+      'tomsk': 'Томск', 'Tomsk': 'Томск',
+      'kemerovo': 'Кемерово', 'Kemerovo': 'Кемерово',
+      'barnaul': 'Барнаул', 'Barnaul': 'Барнаул',
+      'ryazan': 'Рязань', 'Ryazan': 'Рязань',
+      'tula': 'Тула', 'Tula': 'Тула',
+      'yaroslavl': 'Ярославль', 'Yaroslavl': 'Ярославль',
+      'orenburg': 'Оренбург', 'Orenburg': 'Оренбург',
+      'penza': 'Пенза', 'Penza': 'Пенза',
+      'lipetsk': 'Липецк', 'Lipetsk': 'Липецк',
+      'naberezhnye chelny': 'Набережные Челны', 'Naberezhnye Chelny': 'Набережные Челны',
+      'tolyatti': 'Тольятти', 'Tolyatti': 'Тольятти',
+      'izhevsk': 'Ижевск', 'Izhevsk': 'Ижевск',
+      'ulyanovsk': 'Ульяновск', 'Ulyanovsk': 'Ульяновск',
+      'makhachkala': 'Махачкала', 'Makhachkala': 'Махачкала',
+      'stavropol': 'Ставрополь', 'Stavropol': 'Ставрополь',
+      'bryansk': 'Брянск', 'Bryansk': 'Брянск',
+      'tver': 'Тверь', 'Tver': 'Тверь',
+      'kursk': 'Курск', 'Kursk': 'Курск',
+      'magnitogorsk': 'Магнитогорск', 'Magnitogorsk': 'Магнитогорск',
+      'surgut': 'Сургут', 'Surgut': 'Сургут',
+      'vladimir': 'Владимир', 'Vladimir': 'Владимир',
+      'chita': 'Чита', 'Chita': 'Чита',
+      'arkhangelsk': 'Архангельск', 'Arkhangelsk': 'Архангельск',
+      'belgorod': 'Белгород', 'Belgorod': 'Белгород',
+      'kaluga': 'Калуга', 'Kaluga': 'Калуга',
+      'smolensk': 'Смоленск', 'Smolensk': 'Смоленск',
+      'murmansk': 'Мурманск', 'Murmansk': 'Мурманск',
+      // Kazakhstan
+      'almaty': 'Алматы', 'Almaty': 'Алматы',
+      'astana': 'Астана', 'Astana': 'Астана', 'Nur-Sultan': 'Астана',
+      'shymkent': 'Шымкент', 'Shymkent': 'Шымкент',
+      'karaganda': 'Караганда', 'Karaganda': 'Караганда', 'Karagandy': 'Караганда',
+      'aktobe': 'Актобе', 'Aktobe': 'Актобе',
+      'taraz': 'Тараз', 'Taraz': 'Тараз',
+      'pavlodar': 'Павлодар', 'Pavlodar': 'Павлодар',
+      'semey': 'Семей', 'Semey': 'Семей',
+      'atyrau': 'Атырау', 'Atyrau': 'Атырау',
+      'kostanay': 'Костанай', 'Kostanay': 'Костанай',
+      'kyzylorda': 'Кызылорда', 'Kyzylorda': 'Кызылорда',
+      'aktau': 'Актау', 'Aktau': 'Актау',
+      'uralsk': 'Уральск', 'Uralsk': 'Уральск', 'Oral': 'Уральск',
+      'petropavlovsk': 'Петропавловск', 'Petropavlovsk': 'Петропавловск',
+    };
+
+    function translateCity(city) {
+      if (!city) return '—';
+      return CITY_TO_RUSSIAN[city] || CITY_TO_RUSSIAN[city.toLowerCase()] || city;
+    }
+
     function renderStats() {
       const total = filteredData.length;
       const avgPrice = total > 0 ? Math.round(filteredData.reduce((sum, e) => sum + getPrice(e.price), 0) / total) : 0;
@@ -1344,12 +1448,18 @@
         const hasComment = event.comments && event.comments.trim();
         const commentClass = hasComment ? 'has-comment' : 'empty';
         const commentText = hasComment ? escapeHtml(event.comments) : '+ добавить';
+
+        // Форматируем даты
+        const dateFrom = event.date_from || '—';
+        const dateTo = event.date_to && event.date_to !== event.date_from ? event.date_to : '—';
+
         return `
           <tr>
             <td>${event.url ? `<a href="${event.url}" target="_blank">${escapeHtml(event.title) || '—'}</a>` : (escapeHtml(event.title) || '—')}</td>
             <td>${escapeHtml(event.venue) || '—'}</td>
-            <td>${escapeHtml(event.city) || '—'}</td>
-            <td class="date-cell">${event.date_from || '—'}</td>
+            <td>${translateCity(event.city)}</td>
+            <td class="date-cell">${dateFrom}</td>
+            <td class="date-cell">${dateTo}</td>
             <td class="date-cell">${createdDate}</td>
             <td class="comment-cell">
               <span class="comment-text ${commentClass}" data-id="${event.id}" data-url="${escapeAttr(event.url)}" data-title="${escapeAttr(event.title)}" data-comment="${escapeAttr(event.comments)}">${commentText}</span>
@@ -1363,7 +1473,7 @@
         <div class="table-container">
           <table>
             <thead><tr>
-              <th>Название</th><th>Площадка</th><th>Город</th><th>Дата</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
+              <th>Название</th><th>Площадка</th><th>Город</th><th>Дата с</th><th>Дата по</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
@@ -1514,57 +1624,477 @@
       }
     }
 
-    // AI Search - natural language query parser
+    // AI Search - natural language query parser with city/category mapping
+
+    // City name mappings (Russian → possible DB values)
+    // ВАЖНО: более длинные/специфичные варианты должны проверяться первыми!
+    const CITY_ALIASES = [
+      // Длинные названия первыми (чтобы "санкт-петербург" проверялся раньше "петербург")
+      { patterns: ['санкт-петербург', 'санкт петербург', 'saint petersburg', 'st. petersburg', 'st petersburg'], dbNames: ['Saint Petersburg', 'St. Petersburg', 'Санкт-Петербург', 'СПб', 'Saint-Petersburg', 'St Petersburg'] },
+      { patterns: ['нижний новгород', 'nizhny novgorod'], dbNames: ['Nizhny Novgorod', 'Нижний Новгород'] },
+      { patterns: ['ростов-на-дону', 'ростов на дону', 'rostov-on-don'], dbNames: ['Rostov-on-Don', 'Ростов-на-Дону', 'Rostov'] },
+      { patterns: ['нур-султан', 'нур султан', 'nur-sultan'], dbNames: ['Astana', 'Астана', 'Nur-Sultan', 'Нур-Султан'] },
+      { patterns: ['усть-каменогорск', 'усть каменогорск', 'ust-kamenogorsk'], dbNames: ['Ust-Kamenogorsk', 'Усть-Каменогорск'] },
+
+      // Россия - короткие слэнговые
+      { patterns: ['мск', 'в мск'], dbNames: ['Moscow', 'Москва', 'москва', 'MOSCOW'] },
+      { patterns: ['спб', 'в спб'], dbNames: ['Saint Petersburg', 'St. Petersburg', 'Санкт-Петербург', 'СПб', 'Saint-Petersburg', 'St Petersburg'] },
+      { patterns: ['екб', 'в екб'], dbNames: ['Yekaterinburg', 'Екатеринбург', 'Ekaterinburg'] },
+      { patterns: ['нск', 'в нск'], dbNames: ['Novosibirsk', 'Новосибирск'] },
+
+      // Россия - полные названия
+      { patterns: ['москва', 'москве', 'москву', 'moscow'], dbNames: ['Moscow', 'Москва', 'москва', 'MOSCOW'] },
+      { patterns: ['питер', 'питере', 'петербург', 'петербурге'], dbNames: ['Saint Petersburg', 'St. Petersburg', 'Санкт-Петербург', 'СПб', 'Saint-Petersburg', 'St Petersburg'] },
+      { patterns: ['екатеринбург', 'екатеринбурге', 'yekaterinburg', 'ekaterinburg'], dbNames: ['Yekaterinburg', 'Екатеринбург', 'Ekaterinburg'] },
+      { patterns: ['новосибирск', 'новосибирске', 'novosibirsk'], dbNames: ['Novosibirsk', 'Новосибирск'] },
+      { patterns: ['казань', 'казани', 'kazan'], dbNames: ['Kazan', 'Казань'] },
+      { patterns: ['нижний', 'нижнем'], dbNames: ['Nizhny Novgorod', 'Нижний Новгород'] },
+      { patterns: ['самара', 'самаре', 'samara'], dbNames: ['Samara', 'Самара'] },
+      { patterns: ['ростов', 'ростове'], dbNames: ['Rostov-on-Don', 'Ростов-на-Дону', 'Rostov'] },
+      { patterns: ['краснодар', 'краснодаре', 'krasnodar'], dbNames: ['Krasnodar', 'Краснодар'] },
+      { patterns: ['сочи', 'sochi'], dbNames: ['Sochi', 'Сочи'] },
+      { patterns: ['воронеж', 'воронеже', 'voronezh'], dbNames: ['Voronezh', 'Воронеж'] },
+      { patterns: ['уфа', 'уфе', 'ufa'], dbNames: ['Ufa', 'Уфа'] },
+      { patterns: ['красноярск', 'красноярске', 'krasnoyarsk'], dbNames: ['Krasnoyarsk', 'Красноярск'] },
+      { patterns: ['пермь', 'перми', 'perm'], dbNames: ['Perm', 'Пермь'] },
+      { patterns: ['волгоград', 'волгограде', 'volgograd'], dbNames: ['Volgograd', 'Волгоград'] },
+      { patterns: ['саратов', 'саратове', 'saratov'], dbNames: ['Saratov', 'Саратов'] },
+      { patterns: ['тюмень', 'тюмени', 'tyumen'], dbNames: ['Tyumen', 'Тюмень'] },
+      { patterns: ['челябинск', 'челябинске', 'chelyabinsk'], dbNames: ['Chelyabinsk', 'Челябинск'] },
+      { patterns: ['омск', 'омске', 'omsk'], dbNames: ['Omsk', 'Омск'] },
+      { patterns: ['калининград', 'калининграде', 'kaliningrad'], dbNames: ['Kaliningrad', 'Калининград'] },
+      { patterns: ['владивосток', 'владивостоке', 'vladivostok'], dbNames: ['Vladivostok', 'Владивосток'] },
+      { patterns: ['иркутск', 'иркутске', 'irkutsk'], dbNames: ['Irkutsk', 'Иркутск'] },
+      { patterns: ['хабаровск', 'хабаровске', 'khabarovsk'], dbNames: ['Khabarovsk', 'Хабаровск'] },
+      { patterns: ['томск', 'томске', 'tomsk'], dbNames: ['Tomsk', 'Томск'] },
+      { patterns: ['кемерово', 'kemerovo'], dbNames: ['Kemerovo', 'Кемерово'] },
+      { patterns: ['барнаул', 'барнауле', 'barnaul'], dbNames: ['Barnaul', 'Барнаул'] },
+      { patterns: ['рязань', 'рязани', 'ryazan'], dbNames: ['Ryazan', 'Рязань'] },
+      { patterns: ['тула', 'туле', 'tula'], dbNames: ['Tula', 'Тула'] },
+      { patterns: ['ярославль', 'ярославле', 'yaroslavl'], dbNames: ['Yaroslavl', 'Ярославль'] },
+      { patterns: ['оренбург', 'оренбурге', 'orenburg'], dbNames: ['Orenburg', 'Оренбург'] },
+      { patterns: ['пенза', 'пензе', 'penza'], dbNames: ['Penza', 'Пенза'] },
+      { patterns: ['липецк', 'липецке', 'lipetsk'], dbNames: ['Lipetsk', 'Липецк'] },
+      { patterns: ['набережные челны', 'набережных челнах'], dbNames: ['Naberezhnye Chelny', 'Набережные Челны'] },
+      { patterns: ['тольятти', 'tolyatti'], dbNames: ['Tolyatti', 'Тольятти'] },
+      { patterns: ['ижевск', 'ижевске', 'izhevsk'], dbNames: ['Izhevsk', 'Ижевск'] },
+      { patterns: ['ульяновск', 'ульяновске', 'ulyanovsk'], dbNames: ['Ulyanovsk', 'Ульяновск'] },
+      { patterns: ['махачкала', 'махачкале', 'makhachkala'], dbNames: ['Makhachkala', 'Махачкала'] },
+      { patterns: ['ставрополь', 'ставрополе', 'stavropol'], dbNames: ['Stavropol', 'Ставрополь'] },
+
+      // Казахстан
+      { patterns: ['алматы', 'almaty', 'алма-ата', 'алма ата'], dbNames: ['Almaty', 'Алматы', 'Алма-Ата'] },
+      { patterns: ['астана', 'астане', 'astana'], dbNames: ['Astana', 'Астана', 'Nur-Sultan', 'Нур-Султан'] },
+      { patterns: ['шымкент', 'шымкенте', 'shymkent'], dbNames: ['Shymkent', 'Шымкент'] },
+      { patterns: ['караганда', 'караганде', 'karaganda'], dbNames: ['Karaganda', 'Караганда', 'Karagandy'] },
+      { patterns: ['актобе', 'aktobe'], dbNames: ['Aktobe', 'Актобе'] },
+      { patterns: ['тараз', 'таразе', 'taraz'], dbNames: ['Taraz', 'Тараз'] },
+      { patterns: ['павлодар', 'павлодаре', 'pavlodar'], dbNames: ['Pavlodar', 'Павлодар'] },
+      { patterns: ['семей', 'semey'], dbNames: ['Semey', 'Семей'] },
+      { patterns: ['атырау', 'atyrau'], dbNames: ['Atyrau', 'Атырау'] },
+      { patterns: ['костанай', 'костанае', 'kostanay'], dbNames: ['Kostanay', 'Костанай'] },
+      { patterns: ['кызылорда', 'кызылорде', 'kyzylorda'], dbNames: ['Kyzylorda', 'Кызылорда'] },
+      { patterns: ['актау', 'aktau'], dbNames: ['Aktau', 'Актау'] },
+      { patterns: ['уральск', 'уральске', 'uralsk'], dbNames: ['Uralsk', 'Уральск', 'Oral'] },
+      { patterns: ['петропавловск', 'петропавловске', 'petropavlovsk'], dbNames: ['Petropavlovsk', 'Петропавловск'] },
+    ];
+
+    // Category/type mappings (Russian search terms → English keywords in titles)
+    const CATEGORY_KEYWORDS = {
+      'концерт': ['concert', 'концерт', 'live', 'тур', 'tour'],
+      'стендап': ['stand-up', 'standup', 'стендап', 'стенд-ап', 'comedy', 'комеди'],
+      'театр': ['theater', 'theatre', 'театр', 'спектакль', 'пьеса'],
+      'спектакль': ['theater', 'theatre', 'театр', 'спектакль', 'пьеса', 'драма'],
+      'балет': ['ballet', 'балет'],
+      'опера': ['opera', 'опера'],
+      'мюзикл': ['musical', 'мюзикл'],
+      'выставка': ['exhibition', 'выставка', 'expo', 'exhibit'],
+      'фестиваль': ['festival', 'фестиваль', 'fest'],
+      'шоу': ['show', 'шоу'],
+      'цирк': ['circus', 'цирк'],
+      'рок': ['rock', 'рок', 'metal', 'метал'],
+      'джаз': ['jazz', 'джаз'],
+      'классика': ['classical', 'классика', 'симфони', 'symphony', 'orchestra', 'оркестр'],
+      'электронная': ['electronic', 'электронная', 'techno', 'house', 'dj', 'ди-джей'],
+      'хип-хоп': ['hip-hop', 'hiphop', 'хип-хоп', 'rap', 'рэп'],
+      'поп': ['pop', 'поп'],
+      'детский': ['kids', 'детский', 'children', 'детям', 'для детей'],
+      'квн': ['квн', 'kvn'],
+      'юмор': ['comedy', 'humor', 'юмор', 'комеди', 'смех', 'stand-up', 'стендап']
+    };
+
+    // Just fill the input, don't search
     function setAiQuery(query) {
       document.getElementById('ai-search-input').value = query;
-      aiSearch();
+      // Don't auto-search, user will press Enter
+    }
+
+    // ========== УЛУЧШЕННЫЙ ПОИСК ГОРОДОВ ==========
+    // Используем word boundary проверку чтобы "мск" не матчилось внутри других слов
+    function findCityInQuery(query, dbCities) {
+      const queryLower = query.toLowerCase();
+
+      // Создаём Set из всех городов в БД в нижнем регистре для быстрой проверки
+      const dbCitiesLower = new Map();
+      dbCities.forEach(c => dbCitiesLower.set(c.toLowerCase(), c));
+
+      // Проверяем алиасы в порядке (длинные первыми - они уже отсортированы в массиве)
+      for (const alias of CITY_ALIASES) {
+        for (const pattern of alias.patterns) {
+          // Используем word boundary - проверяем что паттерн это отдельное слово
+          // Создаём регулярку с границами слова
+          const regex = new RegExp(`(^|[\\s,."'«»()\\-])${escapeRegex(pattern)}($|[\\s,."'«»()\\-])`, 'i');
+
+          if (regex.test(queryLower)) {
+            // Нашли паттерн! Теперь ищем какое значение есть в БД
+            for (const dbName of alias.dbNames) {
+              const found = dbCitiesLower.get(dbName.toLowerCase());
+              if (found) {
+                return { searchTerm: pattern, dbValue: found, allDbNames: alias.dbNames };
+              }
+            }
+            // Паттерн найден но города нет в БД - возвращаем информацию для дебага
+            return { searchTerm: pattern, dbValue: null, allDbNames: alias.dbNames, notInDb: true };
+          }
+        }
+      }
+
+      // Прямой поиск по городам из БД (если город написан точно как в базе)
+      for (const [cityLower, cityOriginal] of dbCitiesLower) {
+        const regex = new RegExp(`(^|[\\s,."'«»()\\-])${escapeRegex(cityLower)}($|[\\s,."'«»()\\-])`, 'i');
+        if (regex.test(queryLower)) {
+          return { searchTerm: cityLower, dbValue: cityOriginal };
+        }
+      }
+
+      return null;
+    }
+
+    // Экранирование спецсимволов для регулярки
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Find matching category from query
+    function findCategoryInQuery(query) {
+      const queryLower = query.toLowerCase();
+
+      for (const [ruTerm, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+        // Тоже используем word boundary для категорий
+        const regex = new RegExp(`(^|[\\s,."'«»()\\-])${escapeRegex(ruTerm)}`, 'i');
+        if (regex.test(queryLower)) {
+          return { searchTerm: ruTerm, keywords: keywords };
+        }
+      }
+
+      return null;
     }
 
     function aiSearch() {
-      const query = document.getElementById('ai-search-input').value.toLowerCase().trim();
+      const query = document.getElementById('ai-search-input').value.trim();
       if (!query) return;
+
+      const queryLower = query.toLowerCase();
+      const infoEl = document.getElementById('ai-search-info');
+      const resultsEl = document.getElementById('ai-search-results');
+
+      // ========== УЛУЧШЕННЫЙ DEBUG ==========
+
+      // Debug mode - show all cities in DB
+      if (queryLower === 'города' || queryLower === 'cities') {
+        const dbCities = [...new Set(allData.map(e => e.city).filter(Boolean))].sort();
+        const cityCounts = {};
+        allData.forEach(e => { if (e.city) cityCounts[e.city] = (cityCounts[e.city] || 0) + 1; });
+        const cityList = dbCities.map(c => `<span style="color:#00FF88">${c}</span> <span style="color:#666">(${cityCounts[c]})</span>`).join(', ');
+        infoEl.innerHTML = `
+          <div style="background:#1a1a1a;padding:15px;border:2px solid #00FF88;margin-bottom:10px;">
+            <b style="color:#00FF88;font-size:11px;">🏙️ ГОРОДА В БАЗЕ (${dbCities.length})</b><br><br>
+            <div style="line-height:2;">${cityList}</div>
+          </div>
+          <small style="color:#666;">Другие команды: поля, даты, статистика, помощь</small>
+        `;
+        resultsEl.classList.add('active');
+        return;
+      }
+
+      // Debug mode - show all fields of first record
+      if (queryLower === 'поля' || queryLower === 'fields' || queryLower === 'структура') {
+        if (allData.length > 0) {
+          const firstRecord = allData[0];
+          const fields = Object.entries(firstRecord).map(([k, v]) => {
+            const type = v === null ? 'null' : typeof v;
+            const preview = JSON.stringify(v)?.substring(0, 50) || 'null';
+            return `<tr><td style="color:#00CCFF;padding:5px 15px 5px 0;">${k}</td><td style="color:#888;">${type}</td><td style="color:#666;">${preview}${preview?.length >= 50 ? '...' : ''}</td></tr>`;
+          }).join('');
+          infoEl.innerHTML = `
+            <div style="background:#1a1a1a;padding:15px;border:2px solid #00CCFF;margin-bottom:10px;">
+              <b style="color:#00CCFF;font-size:11px;">📋 СТРУКТУРА ТАБЛИЦЫ: ${currentTable}</b><br>
+              <span style="color:#666;">Всего записей: ${allData.length}</span><br><br>
+              <table style="font-size:11px;"><tr style="color:#888;"><th style="text-align:left;padding-right:15px;">Поле</th><th style="text-align:left;padding-right:15px;">Тип</th><th style="text-align:left;">Пример</th></tr>${fields}</table>
+            </div>
+          `;
+        } else {
+          infoEl.innerHTML = `🔧 Нет данных в таблице`;
+        }
+        resultsEl.classList.add('active');
+        return;
+      }
+
+      // Debug mode - check dates specifically
+      if (queryLower === 'даты' || queryLower === 'dates') {
+        const withDates = allData.filter(e => e.date_from).length;
+        const withoutDates = allData.length - withDates;
+
+        // Find date range in data
+        const dates = allData.filter(e => e.date_from).map(e => e.date_from).sort();
+        const minDate = dates[0] || '—';
+        const maxDate = dates[dates.length - 1] || '—';
+
+        // Sample records
+        const sample = allData.slice(0, 8).map(e => `
+          <tr>
+            <td style="color:#00FF88;padding:3px 10px 3px 0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(e.title || '—').substring(0, 30)}</td>
+            <td style="color:#00CCFF;padding:3px 10px;">${e.date_from || '<span style="color:#ff6666">null</span>'}</td>
+            <td style="color:#888;">${e.date_to || '—'}</td>
+          </tr>
+        `).join('');
+
+        infoEl.innerHTML = `
+          <div style="background:#1a1a1a;padding:15px;border:2px solid #FF6B00;margin-bottom:10px;">
+            <b style="color:#FF6B00;font-size:11px;">📅 АНАЛИЗ ДАТ</b><br><br>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+              <div>С датой: <b style="color:#00FF88">${withDates}</b></div>
+              <div>Без даты: <b style="color:#ff6666">${withoutDates}</b></div>
+              <div>Мин. дата: <b style="color:#00CCFF">${minDate}</b></div>
+              <div>Макс. дата: <b style="color:#00CCFF">${maxDate}</b></div>
+            </div>
+            <b style="color:#888;">Примеры записей:</b><br>
+            <table style="font-size:10px;margin-top:5px;">
+              <tr style="color:#666;"><th style="text-align:left;">Название</th><th style="text-align:left;">date_from</th><th style="text-align:left;">date_to</th></tr>
+              ${sample}
+            </table>
+          </div>
+        `;
+        resultsEl.classList.add('active');
+        return;
+      }
+
+      // Debug mode - statistics
+      if (queryLower === 'статистика' || queryLower === 'stats' || queryLower === 'стат') {
+        const cities = [...new Set(allData.map(e => e.city).filter(Boolean))];
+        const venues = [...new Set(allData.map(e => e.venue).filter(Boolean))];
+        const withPrice = allData.filter(e => e.price && parseFloat(e.price) > 0).length;
+        const withUrl = allData.filter(e => e.url).length;
+        const withComments = allData.filter(e => e.comments && e.comments.trim()).length;
+        const avgPrice = allData.length > 0 ? Math.round(allData.reduce((s, e) => s + getPrice(e.price), 0) / allData.length) : 0;
+
+        // Top 5 cities
+        const cityCounts = {};
+        allData.forEach(e => { if (e.city) cityCounts[e.city] = (cityCounts[e.city] || 0) + 1; });
+        const topCities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        infoEl.innerHTML = `
+          <div style="background:#1a1a1a;padding:15px;border:2px solid #00FF88;margin-bottom:10px;">
+            <b style="color:#00FF88;font-size:11px;">📊 СТАТИСТИКА: ${currentTable}</b><br><br>
+            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:15px;">
+              <div>Записей: <b style="color:#00FF88">${allData.length}</b></div>
+              <div>Городов: <b style="color:#00CCFF">${cities.length}</b></div>
+              <div>Площадок: <b style="color:#00CCFF">${venues.length}</b></div>
+              <div>С ценой: <b style="color:#00FF88">${withPrice}</b></div>
+              <div>Ср. цена: <b style="color:#FF6B00">${avgPrice.toLocaleString()} ${CURRENCY[selectedRegion]}</b></div>
+              <div>С URL: <b style="color:#00FF88">${withUrl}</b></div>
+              <div>С комментарием: <b style="color:#00CCFF">${withComments}</b></div>
+            </div>
+            <b style="color:#888;">ТОП-5 городов:</b><br>
+            ${topCities.map(([city, count], i) => `<span style="color:#${i === 0 ? '00FF88' : '888'}">${i + 1}. ${city} (${count})</span>`).join(' • ')}
+          </div>
+        `;
+        resultsEl.classList.add('active');
+        return;
+      }
+
+      // Help command
+      if (queryLower === 'помощь' || queryLower === 'help' || queryLower === '?') {
+        infoEl.innerHTML = `
+          <div style="background:#1a1a1a;padding:15px;border:2px solid #00CCFF;margin-bottom:10px;">
+            <b style="color:#00CCFF;font-size:11px;">❓ СПРАВКА ПО УМНОМУ ПОИСКУ</b><br><br>
+
+            <b style="color:#00FF88;">Поиск событий:</b><br>
+            • <span style="color:#888;">концерты в Москве</span> — по городу и типу<br>
+            • <span style="color:#888;">стендап 15 марта</span> — по дате<br>
+            • <span style="color:#888;">театр дешевле 5000</span> — по цене<br>
+            • <span style="color:#888;"><b>с 10 марта по 25 марта</b></span> — диапазон дат<br>
+            • <span style="color:#888;"><b>10-20 апреля</b></span> — диапазон дат (короткая форма)<br>
+            • <span style="color:#888;">в марте</span> — весь месяц<br>
+            • <span style="color:#888;">на следующей неделе</span> — период<br>
+            • <span style="color:#888;">новые события</span> — за 3 дня<br><br>
+
+            <b style="color:#FF6B00;">Debug команды:</b><br>
+            • <span style="color:#888;">города</span> — список городов в базе<br>
+            • <span style="color:#888;">поля</span> — структура таблицы<br>
+            • <span style="color:#888;">даты</span> — анализ дат<br>
+            • <span style="color:#888;">статистика</span> — общая статистика<br>
+          </div>
+        `;
+        resultsEl.classList.add('active');
+        return;
+      }
 
       // Parse natural language query
       let results = [...allData];
       let appliedFilters = [];
+      let debugInfo = [];
+      let warnings = [];
 
-      // Extract city names
-      const cities = [...new Set(allData.map(e => e.city).filter(Boolean))];
-      for (const city of cities) {
-        if (query.includes(city.toLowerCase())) {
-          results = results.filter(e => e.city && e.city.toLowerCase() === city.toLowerCase());
-          appliedFilters.push(`город: ${city}`);
-          break;
+      // Get all cities from data
+      const dbCities = [...new Set(allData.map(e => e.city).filter(Boolean))];
+
+      // 1. Find city - СТРОГАЯ ФИЛЬТРАЦИЯ
+      const cityMatch = findCityInQuery(queryLower, dbCities);
+      if (cityMatch) {
+        if (cityMatch.notInDb) {
+          // Город распознан но его нет в базе
+          warnings.push(`⚠️ Город "${cityMatch.searchTerm}" распознан, но в базе нет записей с такими вариантами: ${cityMatch.allDbNames.join(', ')}`);
+          debugInfo.push(`Город "${cityMatch.searchTerm}" NOT IN DB! Искали: ${cityMatch.allDbNames.join(', ')}`);
+        } else {
+          const beforeCount = results.length;
+          // СТРОГАЯ фильтрация - точное совпадение города (case-insensitive)
+          const targetCity = cityMatch.dbValue.toLowerCase();
+          results = results.filter(e => e.city && e.city.toLowerCase() === targetCity);
+          appliedFilters.push(`🏙️ ${cityMatch.dbValue}`);
+          debugInfo.push(`Город "${cityMatch.searchTerm}" → "${cityMatch.dbValue}" (${beforeCount} → ${results.length})`);
+
+          // Дополнительная проверка - убедимся что все результаты реально из нужного города
+          const citiesInResults = [...new Set(results.map(e => e.city))];
+          if (citiesInResults.length > 1) {
+            warnings.push(`⚠️ BUG: В результатах несколько городов: ${citiesInResults.join(', ')}`);
+          } else if (citiesInResults.length === 1 && citiesInResults[0].toLowerCase() !== targetCity) {
+            warnings.push(`⚠️ BUG: Неверный город в результатах: ${citiesInResults[0]} вместо ${cityMatch.dbValue}`);
+          }
         }
       }
 
-      // Extract date patterns
+      // 2. Find category/type
+      const categoryMatch = findCategoryInQuery(queryLower);
+      if (categoryMatch) {
+        const beforeCount = results.length;
+        results = results.filter(e => {
+          if (!e.title) return false;
+          const titleLower = e.title.toLowerCase();
+          return categoryMatch.keywords.some(kw => titleLower.includes(kw.toLowerCase()));
+        });
+        appliedFilters.push(`тип: ${categoryMatch.searchTerm}`);
+        debugInfo.push(`Категория "${categoryMatch.searchTerm}" → ключевые слова: ${categoryMatch.keywords.slice(0,3).join(', ')}... (${beforeCount} → ${results.length})`);
+      }
+
+      // 3. Extract date patterns
       const months = {
         'январ': '01', 'феврал': '02', 'март': '03', 'апрел': '04',
         'ма': '05', 'июн': '06', 'июл': '07', 'август': '08',
         'сентябр': '09', 'октябр': '10', 'ноябр': '11', 'декабр': '12'
       };
 
-      // Check for specific date like "15 марта"
-      const dateMatch = query.match(/(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
-      if (dateMatch) {
+      // Helper to get month number from Russian word
+      function getMonthNum(monthWord) {
+        const word = monthWord.toLowerCase();
+        for (const [prefix, num] of Object.entries(months)) {
+          if (word.startsWith(prefix)) return num;
+        }
+        return null;
+      }
+
+      // Helper to format date string
+      function formatDate(day, month, year) {
+        return `${year}-${month}-${day.toString().padStart(2, '0')}`;
+      }
+
+      const currentYear = new Date().getFullYear();
+      let dateFilterApplied = false;
+
+      // ========== DATE RANGE: "с 10 марта по 30 марта" or "с 10 по 30 марта" ==========
+      const rangeMatch1 = queryLower.match(/с\s*(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)?\s*по\s*(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
+      if (rangeMatch1 && !dateFilterApplied) {
+        const dayStart = rangeMatch1[1];
+        const dayEnd = rangeMatch1[3];
+        const monthEnd = getMonthNum(rangeMatch1[4]);
+        const monthStart = rangeMatch1[2] ? getMonthNum(rangeMatch1[2]) : monthEnd; // если месяц не указан, берем конечный
+
+        if (monthStart && monthEnd) {
+          const startDate = formatDate(dayStart, monthStart, currentYear);
+          const endDate = formatDate(dayEnd, monthEnd, currentYear);
+          const beforeCount = results.length;
+          results = results.filter(e => {
+            if (!e.date_from) return false;
+            return e.date_from >= startDate && e.date_from <= endDate;
+          });
+          appliedFilters.push(`📅 ${dayStart}.${monthStart} — ${dayEnd}.${monthEnd}`);
+          debugInfo.push(`Диапазон дат: ${startDate} — ${endDate} (${beforeCount} → ${results.length})`);
+          dateFilterApplied = true;
+        }
+      }
+
+      // ========== DATE RANGE: "10-30 марта" or "10-30 апреля" ==========
+      const rangeMatch2 = queryLower.match(/(\d{1,2})\s*[-–]\s*(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
+      if (rangeMatch2 && !dateFilterApplied) {
+        const dayStart = rangeMatch2[1];
+        const dayEnd = rangeMatch2[2];
+        const month = getMonthNum(rangeMatch2[3]);
+
+        if (month) {
+          const startDate = formatDate(dayStart, month, currentYear);
+          const endDate = formatDate(dayEnd, month, currentYear);
+          const beforeCount = results.length;
+          results = results.filter(e => {
+            if (!e.date_from) return false;
+            return e.date_from >= startDate && e.date_from <= endDate;
+          });
+          appliedFilters.push(`📅 ${dayStart}-${dayEnd}.${month}`);
+          debugInfo.push(`Диапазон: ${startDate} — ${endDate} (${beforeCount} → ${results.length})`);
+          dateFilterApplied = true;
+        }
+      }
+
+      // ========== WHOLE MONTH: "в марте", "в апреле" ==========
+      const monthOnlyMatch = queryLower.match(/в\s+(январ[еёя]?|феврал[еёя]?|март[еа]?|апрел[еёя]?|ма[ейя]|июн[еёя]?|июл[еёя]?|август[еа]?|сентябр[еёя]?|октябр[еёя]?|ноябр[еёя]?|декабр[еёя]?)/i);
+      if (monthOnlyMatch && !dateFilterApplied) {
+        const month = getMonthNum(monthOnlyMatch[1]);
+        if (month) {
+          const startDate = `${currentYear}-${month}-01`;
+          // Get last day of month
+          const lastDay = new Date(currentYear, parseInt(month), 0).getDate();
+          const endDate = `${currentYear}-${month}-${lastDay}`;
+          const beforeCount = results.length;
+          results = results.filter(e => {
+            if (!e.date_from) return false;
+            return e.date_from >= startDate && e.date_from <= endDate;
+          });
+          appliedFilters.push(`📅 весь ${monthOnlyMatch[1]}`);
+          debugInfo.push(`Месяц: ${startDate} — ${endDate} (${beforeCount} → ${results.length})`);
+          dateFilterApplied = true;
+        }
+      }
+
+      // ========== SINGLE DATE: "15 марта" ==========
+      const dateMatch = queryLower.match(/(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
+      if (dateMatch && !dateFilterApplied) {
         const day = dateMatch[1].padStart(2, '0');
-        const monthKey = Object.keys(months).find(m => dateMatch[2].toLowerCase().startsWith(m));
-        if (monthKey) {
-          const month = months[monthKey];
-          const year = new Date().getFullYear();
-          const targetDate = `${year}-${month}-${day}`;
+        const month = getMonthNum(dateMatch[2]);
+        if (month) {
+          const targetDate = `${currentYear}-${month}-${day}`;
+          const beforeCount = results.length;
           results = results.filter(e => {
             if (!e.date_from) return false;
             const dateTo = e.date_to || e.date_from;
             return targetDate >= e.date_from && targetDate <= dateTo;
           });
-          appliedFilters.push(`дата: ${day}.${month}`);
+          appliedFilters.push(`📅 ${day}.${month}`);
+          debugInfo.push(`Точная дата: ${targetDate} (${beforeCount} → ${results.length})`);
+          dateFilterApplied = true;
         }
       }
 
       // Check for "на следующей неделе" / "на этой неделе"
-      if (query.includes('следующ') && query.includes('недел')) {
+      if (queryLower.includes('следующ') && queryLower.includes('недел')) {
         const today = new Date();
         const nextWeekStart = new Date(today);
         nextWeekStart.setDate(today.getDate() + (7 - today.getDay() + 1));
@@ -1576,7 +2106,7 @@
         appliedFilters.push(`следующая неделя`);
       }
 
-      if (query.includes('этой недел') || query.includes('эта недел')) {
+      if (queryLower.includes('этой недел') || queryLower.includes('эта недел')) {
         const today = new Date();
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - today.getDay() + 1);
@@ -1589,13 +2119,13 @@
       }
 
       // Check for "сегодня" / "завтра"
-      if (query.includes('сегодня')) {
+      if (queryLower.includes('сегодня')) {
         const today = new Date().toISOString().substring(0, 10);
         results = results.filter(e => e.date_from === today || (e.created_at && e.created_at.substring(0, 10) === today));
         appliedFilters.push(`сегодня`);
       }
 
-      if (query.includes('завтра')) {
+      if (queryLower.includes('завтра')) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tomorrowStr = tomorrow.toISOString().substring(0, 10);
@@ -1604,7 +2134,7 @@
       }
 
       // Check for "новые" / "новых"
-      if (query.includes('нов')) {
+      if (queryLower.includes('нов')) {
         const threeDaysAgo = new Date();
         threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
         const threeDaysAgoStr = threeDaysAgo.toISOString().substring(0, 10);
@@ -1612,29 +2142,19 @@
         appliedFilters.push(`новые за 3 дня`);
       }
 
-      // Price filters
-      const priceMatch = query.match(/(дешевле|до|меньше|не дороже)\s*(\d+)/i);
+      // 4. Price filters
+      const priceMatch = queryLower.match(/(дешевле|до|меньше|не дороже)\s*(\d+)/i);
       if (priceMatch) {
         const maxPrice = parseInt(priceMatch[2]);
         results = results.filter(e => getPrice(e.price) <= maxPrice);
         appliedFilters.push(`цена до ${maxPrice}`);
       }
 
-      const priceMinMatch = query.match(/(дороже|от|больше|не дешевле)\s*(\d+)/i);
+      const priceMinMatch = queryLower.match(/(дороже|от|больше|не дешевле)\s*(\d+)/i);
       if (priceMinMatch) {
         const minPrice = parseInt(priceMinMatch[2]);
         results = results.filter(e => getPrice(e.price) >= minPrice);
         appliedFilters.push(`цена от ${minPrice}`);
-      }
-
-      // Keywords search in title
-      const keywords = ['концерт', 'стендап', 'театр', 'выставк', 'фестиваль', 'шоу', 'спектакл', 'балет', 'опер', 'мюзикл', 'комеди', 'рок', 'джаз', 'классик'];
-      for (const kw of keywords) {
-        if (query.includes(kw)) {
-          results = results.filter(e => e.title && e.title.toLowerCase().includes(kw));
-          appliedFilters.push(`тип: ${kw}`);
-          break;
-        }
       }
 
       // Update filtered data and re-render
@@ -1643,13 +2163,35 @@
       renderTable();
 
       // Show AI search results info
-      const infoEl = document.getElementById('ai-search-info');
-      const resultsEl = document.getElementById('ai-search-results');
-      if (appliedFilters.length > 0) {
-        infoEl.innerHTML = `🔍 Найдено ${results.length} событий | Фильтры: ${appliedFilters.join(', ')}`;
+      if (appliedFilters.length > 0 || warnings.length > 0) {
+        let html = `🔍 Найдено <b style="color:#00FF88">${results.length}</b> событий`;
+        if (appliedFilters.length > 0) {
+          html += ` | Фильтры: ${appliedFilters.join(', ')}`;
+        }
+
+        // Show warnings
+        if (warnings.length > 0) {
+          html += `<br><div style="color:#FF6B00;margin-top:8px;">${warnings.join('<br>')}</div>`;
+        }
+
+        // Show debug info
+        if (debugInfo.length > 0) {
+          html += `<br><br><small style="color:#666;">🔧 ${debugInfo.join(' | ')}</small>`;
+        }
+
+        // Показываем города в выдаче для проверки
+        if (results.length > 0 && results.length <= 500) {
+          const citiesInResults = [...new Set(results.map(e => e.city).filter(Boolean))];
+          if (citiesInResults.length > 0) {
+            html += `<br><small style="color:#888;">Города в выдаче: ${citiesInResults.join(', ')}</small>`;
+          }
+        }
+
+        infoEl.innerHTML = html;
         resultsEl.classList.add('active');
       } else {
-        infoEl.innerHTML = `⚠️ Не удалось распознать запрос. Попробуйте указать город, дату или тип события.`;
+        // Show what we tried to match
+        infoEl.innerHTML = `⚠️ Не удалось распознать запрос "${escapeHtml(query)}". <br>Попробуйте: "концерты в Москве", "стендап дешевле 3000", "с 10 по 25 марта"<br><br><small style="color:#888;">Напишите "<b>помощь</b>" для справки или "<b>города</b>" для списка городов</small>`;
         resultsEl.classList.add('active');
       }
     }
