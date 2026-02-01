@@ -919,7 +919,7 @@
       <div class="filters-grid" id="filters-grid">
         <div class="filter-group">
           <label>Поиск</label>
-          <input type="text" id="filter-search" placeholder="Название события..." oninput="applyFilters()">
+          <input type="text" id="filter-search" placeholder="Название события..." oninput="debouncedApplyFilters()">
         </div>
         <div class="filter-group">
           <label>Город</label>
@@ -929,7 +929,7 @@
         </div>
         <div class="filter-group">
           <label>Площадка</label>
-          <select id="filter-venue" onchange="applyFilters()">
+          <select id="filter-venue" onchange="applyFilters()" onfocus="loadVenues()">
             <option value="">Все площадки</option>
           </select>
         </div>
@@ -1013,6 +1013,13 @@
     let selectedRegion = null;
     let selectedPurpose = null;
     let currentTable = null;
+
+    // Debounce для оптимизации
+    let filterTimeout = null;
+    function debouncedApplyFilters() {
+      clearTimeout(filterTimeout);
+      filterTimeout = setTimeout(applyFilters, 300); // 300мс задержка
+    }
 
     // Auth
     function login() {
@@ -1108,6 +1115,11 @@
       selectedPurpose = sessionStorage.getItem('yaa_purpose');
       currentTable = TABLES[selectedRegion][selectedPurpose];
 
+      // ВАЖНО: Очищаем старые данные при смене режима!
+      allData = [];
+      filteredData = [];
+      newEvents = [];
+
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('region-screen').style.display = 'none';
       document.getElementById('purpose-screen').style.display = 'none';
@@ -1123,6 +1135,10 @@
       // Show/hide sections based on mode
       document.getElementById('new-events-section').style.display = selectedPurpose === 'sales' ? 'block' : 'none';
       document.getElementById('competitor-section').style.display = selectedPurpose === 'marketing' ? 'block' : 'none';
+
+      // Сбрасываем UI
+      document.getElementById('stats').innerHTML = '';
+      document.getElementById('table-container').innerHTML = '';
 
       fetchData();
     }
@@ -1207,7 +1223,12 @@
         }
 
         statusEl.className = 'status success';
-        statusEl.innerHTML = `✅ Загружено ${allData.length} событий из ${currentTable}`;
+
+        if (allData.length === 0) {
+          statusEl.innerHTML = `⚠️ Загружено 0 событий из ${currentTable}. <button onclick="fetchData()" style="background:#00FF88;color:#000;border:2px solid #00AA55;padding:5px 15px;margin-left:10px;cursor:pointer;font-family:inherit;">🔄 Попробовать снова</button>`;
+        } else {
+          statusEl.innerHTML = `✅ Загружено ${allData.length} событий из ${currentTable}`;
+        }
 
         populateFilters();
         applyFilters();
@@ -1215,7 +1236,7 @@
       } catch (error) {
         console.error('Error:', error);
         statusEl.className = 'status error';
-        statusEl.innerHTML = `❌ Ошибка: ${error.message}`;
+        statusEl.innerHTML = `❌ Ошибка: ${error.message}. <button onclick="fetchData()" style="background:#ff6666;color:#000;border:2px solid #cc4444;padding:5px 15px;margin-left:10px;cursor:pointer;font-family:inherit;">🔄 Попробовать снова</button>`;
       }
     }
 
@@ -1241,6 +1262,8 @@
       `).join('') + (newEvents.length > 10 ? `<p style="color:#666;font-size:12px;text-align:center;margin-top:10px;">... и ещё ${newEvents.length - 10} новых</p>` : '');
     }
 
+    let venuesLoaded = false; // Флаг ленивой загрузки площадок
+
     function populateFilters() {
       // Считаем количество событий по городам
       const cityCounts = {};
@@ -1254,21 +1277,35 @@
       document.getElementById('filter-city').innerHTML = '<option value="">Все города (' + cities.length + ')</option>' +
         cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
 
-      // Считаем количество событий по площадкам
-      const venueCounts = {};
-      allData.forEach(e => {
-        if (e.venue) venueCounts[e.venue] = (venueCounts[e.venue] || 0) + 1;
-      });
-
-      // Сортируем площадки по количеству событий
-      const venues = Object.keys(venueCounts).sort((a, b) => venueCounts[b] - venueCounts[a]);
-      document.getElementById('filter-venue').innerHTML = '<option value="">Все площадки (' + venues.length + ')</option>' +
-        venues.map(v => `<option value="${v}">${v} (${venueCounts[v]})</option>`).join('');
+      // Площадки загружаем ЛЕНИВО при первом клике
+      const venueSelect = document.getElementById('filter-venue');
+      venuesLoaded = false;
+      venueSelect.innerHTML = '<option value="">Все площадки (кликни для загрузки)</option>';
 
       // Populate competitor city dropdown (for Marketing mode)
       if (selectedPurpose === 'marketing') {
         document.getElementById('competitor-city').innerHTML = '<option value="">Выберите город</option>' +
           cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
+      }
+    }
+
+    // Ленивая загрузка площадок
+    function loadVenues() {
+      if (venuesLoaded) return;
+      venuesLoaded = true;
+
+      const venueCounts = {};
+      allData.forEach(e => {
+        if (e.venue) venueCounts[e.venue] = (venueCounts[e.venue] || 0) + 1;
+      });
+
+      const venues = Object.keys(venueCounts).sort((a, b) => venueCounts[b] - venueCounts[a]);
+      const venueSelect = document.getElementById('filter-venue');
+      venueSelect.innerHTML = '<option value="">Все площадки (' + venues.length + ')</option>' +
+        venues.slice(0, 200).map(v => `<option value="${v}">${v} (${venueCounts[v]})</option>`).join(''); // Лимит 200
+
+      if (venues.length > 200) {
+        venueSelect.innerHTML += `<option disabled>... и ещё ${venues.length - 200} площадок</option>`;
       }
     }
 
@@ -1434,22 +1471,53 @@
       `;
     }
 
+    // ========== ОПТИМИЗАЦИЯ: Виртуализация таблицы ==========
+    const TABLE_PAGE_SIZE = 100; // Показываем по 100 записей
+    let currentTablePage = 0;
+    let isLoadingMore = false;
+
     function renderTable() {
       const tableEl = document.getElementById('table-container');
       const currency = CURRENCY[selectedRegion];
+      currentTablePage = 0; // Сброс при новом рендере
 
       if (filteredData.length === 0) {
         tableEl.innerHTML = '<p class="results-info">Нет событий по заданным фильтрам</p>';
         return;
       }
 
-      const rows = filteredData.map(event => {
+      // Рендерим только первые TABLE_PAGE_SIZE записей
+      const visibleData = filteredData.slice(0, TABLE_PAGE_SIZE);
+      const rows = renderRows(visibleData, currency);
+
+      tableEl.innerHTML = `
+        <div class="table-container" id="table-scroll-container">
+          <table>
+            <thead><tr>
+              <th>Название</th><th>Площадка</th><th>Город</th><th>Дата с</th><th>Дата по</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
+            </tr></thead>
+            <tbody id="table-body">${rows}</tbody>
+          </table>
+        </div>
+        <p class="results-info">
+          Показано <span id="shown-count">${Math.min(TABLE_PAGE_SIZE, filteredData.length)}</span> из ${filteredData.length} событий
+          ${filteredData.length > TABLE_PAGE_SIZE ? `<button onclick="loadMoreRows()" id="load-more-btn" style="background:#00FF88;color:#000;border:2px solid #00AA55;padding:5px 15px;margin-left:10px;cursor:pointer;font-family:inherit;">Показать ещё ${Math.min(TABLE_PAGE_SIZE, filteredData.length - TABLE_PAGE_SIZE)}</button>` : ''}
+        </p>
+      `;
+
+      // Бесконечный скролл
+      const scrollContainer = document.getElementById('table-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.addEventListener('scroll', handleTableScroll);
+      }
+    }
+
+    function renderRows(data, currency) {
+      return data.map(event => {
         const createdDate = event.created_at ? event.created_at.substring(0, 10) : '—';
         const hasComment = event.comments && event.comments.trim();
         const commentClass = hasComment ? 'has-comment' : 'empty';
         const commentText = hasComment ? escapeHtml(event.comments) : '+ добавить';
-
-        // Форматируем даты
         const dateFrom = event.date_from || '—';
         const dateTo = event.date_to && event.date_to !== event.date_from ? event.date_to : '—';
 
@@ -1468,18 +1536,58 @@
           </tr>
         `;
       }).join('');
+    }
 
-      tableEl.innerHTML = `
-        <div class="table-container">
-          <table>
-            <thead><tr>
-              <th>Название</th><th>Площадка</th><th>Город</th><th>Дата с</th><th>Дата по</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-        <p class="results-info">Показано ${filteredData.length} из ${allData.length} событий</p>
-      `;
+    // Подгрузка дополнительных строк
+    function loadMoreRows() {
+      if (isLoadingMore) return;
+      isLoadingMore = true;
+
+      currentTablePage++;
+      const startIdx = currentTablePage * TABLE_PAGE_SIZE;
+      const endIdx = startIdx + TABLE_PAGE_SIZE;
+      const newData = filteredData.slice(startIdx, endIdx);
+
+      if (newData.length === 0) {
+        isLoadingMore = false;
+        return;
+      }
+
+      const currency = CURRENCY[selectedRegion];
+      const newRows = renderRows(newData, currency);
+
+      const tbody = document.getElementById('table-body');
+      if (tbody) {
+        tbody.insertAdjacentHTML('beforeend', newRows);
+      }
+
+      // Обновляем счётчик
+      const shownCount = document.getElementById('shown-count');
+      const loadMoreBtn = document.getElementById('load-more-btn');
+      const totalShown = Math.min((currentTablePage + 1) * TABLE_PAGE_SIZE, filteredData.length);
+
+      if (shownCount) shownCount.textContent = totalShown;
+
+      if (loadMoreBtn) {
+        const remaining = filteredData.length - totalShown;
+        if (remaining <= 0) {
+          loadMoreBtn.style.display = 'none';
+        } else {
+          loadMoreBtn.textContent = `Показать ещё ${Math.min(TABLE_PAGE_SIZE, remaining)}`;
+        }
+      }
+
+      isLoadingMore = false;
+    }
+
+    // Автоподгрузка при скролле
+    function handleTableScroll(e) {
+      const container = e.target;
+      const scrollBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+
+      if (scrollBottom < 200 && !isLoadingMore) {
+        loadMoreRows();
+      }
     }
 
     function escapeHtml(str) {
