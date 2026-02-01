@@ -780,6 +780,160 @@
 </head>
 <body>
 
+  <!-- Preloader -->
+  <div id="preloader" class="preloader">
+    <div class="preloader-content">
+      <div class="preloader-brain">🧠</div>
+      <h1 class="preloader-title">YAA ЦЕРЕБРО</h1>
+      <div class="preloader-bar">
+        <div class="preloader-progress" id="preloader-progress"></div>
+      </div>
+      <p class="preloader-text" id="preloader-text">Инициализация...</p>
+      <p class="preloader-joke" id="preloader-joke"></p>
+    </div>
+  </div>
+
+  <style>
+    .preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+    }
+    .preloader.hidden {
+      display: none;
+    }
+    .preloader-content {
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    .preloader-brain {
+      font-size: 64px;
+      line-height: 1;
+      display: block;
+      animation: pulse-brain 1s ease-in-out infinite;
+      text-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+    }
+    @keyframes pulse-brain {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 0.8; }
+    }
+    .preloader-title {
+      color: #00FF88;
+      font-size: 18px;
+      margin: 25px 0 20px 0;
+      text-shadow: 2px 2px 0 #00AA55;
+      font-family: 'Press Start 2P', monospace;
+      letter-spacing: 2px;
+    }
+    .preloader-bar {
+      width: 280px;
+      height: 16px;
+      background: #1a1a1a;
+      border: 3px solid #00FF88;
+      margin: 20px auto;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .preloader-progress {
+      height: 100%;
+      width: 0%;
+      background: #00FF88;
+      box-shadow: 0 0 10px #00FF88;
+      transition: width 0.4s ease;
+    }
+    .preloader-text {
+      color: #00FF88;
+      font-size: 9px;
+      font-family: 'Press Start 2P', monospace;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    .preloader-joke {
+      color: #666;
+      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 320px;
+      margin: 0 auto;
+      line-height: 1.5;
+      min-height: 36px;
+    }
+  </style>
+
+  <script>
+    // Прелоадер с шутками
+    const preloaderJokes = [
+      "🔮 Сверяю расписание с ретроградным Меркурием...",
+      "🎸 Проверяю, не отменился ли очередной тур...",
+      "🌙 Луна в Козероге — время для рок-концертов",
+      "🎤 Загружаю базу... Баста опять в туре!",
+      "⭐ Юпитер в пятом доме — жди фестивалей",
+      "🎪 Подключаюсь к вибрациям ивент-индустрии...",
+      "🔥 Марс в Овне — сезон промо начался",
+      "🎹 Синхронизирую чакры с билетами...",
+      "🌟 Венера благоволит стендаперам сегодня",
+      "🎭 Нептун шепчет: театр будет огонь",
+      "🚀 Астральная проекция в мир ивентов...",
+      "💫 Плутон ретрограден — олды возвращаются",
+      "🎵 Калибрую частоты под вайб аудитории...",
+      "🔔 Сатурн: дедлайны по ивентам горят!"
+    ];
+
+    const preloaderSteps = [
+      { text: "Инициализация...", percent: 15 },
+      { text: "Подключение к базе...", percent: 35 },
+      { text: "Загрузка событий...", percent: 60 },
+      { text: "Обработка данных...", percent: 85 },
+      { text: "Готово!", percent: 100 }
+    ];
+
+    let preloaderStep = 0;
+
+    function runPreloader() {
+      const progress = document.getElementById('preloader-progress');
+      const text = document.getElementById('preloader-text');
+      const joke = document.getElementById('preloader-joke');
+
+      // Показываем случайную шутку
+      joke.textContent = preloaderJokes[Math.floor(Math.random() * preloaderJokes.length)];
+
+      function nextStep() {
+        if (preloaderStep < preloaderSteps.length) {
+          const step = preloaderSteps[preloaderStep];
+          progress.style.width = step.percent + '%';
+          text.textContent = step.text;
+
+          // Меняем шутку каждые 2 шага
+          if (preloaderStep % 2 === 0) {
+            joke.textContent = preloaderJokes[Math.floor(Math.random() * preloaderJokes.length)];
+          }
+
+          preloaderStep++;
+          setTimeout(nextStep, 700);
+        } else {
+          // Прелоадер завершён — скрываем
+          setTimeout(() => {
+            document.getElementById('preloader').classList.add('hidden');
+          }, 300);
+        }
+      }
+
+      setTimeout(nextStep, 400);
+    }
+
+    // Запуск прелоадера при загрузке
+    document.addEventListener('DOMContentLoaded', runPreloader);
+  </script>
+
   <!-- Login Screen -->
   <div id="login-screen" class="login-screen">
     <div class="login-box">
@@ -963,6 +1117,8 @@
     <div class="btn-group">
       <button class="btn" onclick="fetchData()">↻ ОБНОВИТЬ</button>
       <button class="btn btn-secondary" onclick="clearFilters()">✕ СБРОС ФИЛЬТРОВ</button>
+      <button class="btn" onclick="showRecentlyAdded(7)" style="background:#FF6B00;border-color:#CC5500;" id="btn-new-week">🆕 НОВЫЕ ЗА НЕДЕЛЮ</button>
+      <button class="btn" onclick="showRecentlyAdded(3)" style="background:#00FF88;border-color:#00AA55;color:#000;">🆕 ЗА 3 ДНЯ</button>
       <button class="btn btn-secondary" onclick="exportCSV()" style="background:#00CCFF;color:#000;border-color:#0088AA;">📥 СКАЧАТЬ CSV</button>
     </div>
 
@@ -1246,20 +1402,33 @@
 
       countEl.textContent = newEvents.length;
 
-      if (newEvents.length === 0) {
+      // Сортируем по дате добавления (новые первыми)
+      const sortedNew = [...newEvents].sort((a, b) => {
+        const dateA = a.created_at || '';
+        const dateB = b.created_at || '';
+        return dateB.localeCompare(dateA);
+      });
+
+      if (sortedNew.length === 0) {
         listEl.innerHTML = '<p style="color:#666;font-size:13px;">Нет новых событий за последние 3 дня</p>';
         return;
       }
 
-      listEl.innerHTML = newEvents.slice(0, 10).map(e => `
+      listEl.innerHTML = sortedNew.slice(0, 15).map(e => {
+        const createdDate = e.created_at ? e.created_at.substring(0, 10) : '—';
+        const eventDate = e.date_from || '—';
+        return `
         <div class="new-event-card">
           <div class="new-event-info">
             <div class="new-event-title">${e.url ? `<a href="${e.url}" target="_blank">${escapeHtml(e.title)}</a>` : escapeHtml(e.title)}</div>
-            <div class="new-event-meta">${escapeHtml(e.venue) || '—'} • ${escapeHtml(e.city) || '—'}</div>
+            <div class="new-event-meta">${escapeHtml(e.venue) || '—'} • ${translateCity(e.city)}</div>
           </div>
-          <div class="new-event-date">${e.date_from || '—'}</div>
+          <div class="new-event-date" style="text-align:right;">
+            <div style="color:#00FF88;">📅 ${eventDate}</div>
+            <div style="color:#888;font-size:9px;">добавлено: ${createdDate}</div>
+          </div>
         </div>
-      `).join('') + (newEvents.length > 10 ? `<p style="color:#666;font-size:12px;text-align:center;margin-top:10px;">... и ещё ${newEvents.length - 10} новых</p>` : '');
+      `}).join('') + (sortedNew.length > 15 ? `<p style="color:#666;font-size:12px;text-align:center;margin-top:10px;">... и ещё ${sortedNew.length - 15} новых</p>` : '');
     }
 
     let venuesLoaded = false; // Флаг ленивой загрузки площадок
@@ -1512,6 +1681,10 @@
       }
     }
 
+    // Флаг режима "новые"
+    let showingRecentMode = false;
+    let recentCutoffDate = null;
+
     function renderRows(data, currency) {
       return data.map(event => {
         const createdDate = event.created_at ? event.created_at.substring(0, 10) : '—';
@@ -1521,14 +1694,19 @@
         const dateFrom = event.date_from || '—';
         const dateTo = event.date_to && event.date_to !== event.date_from ? event.date_to : '—';
 
+        // Подсветка только в режиме "новые"
+        const isNew = showingRecentMode && recentCutoffDate && createdDate >= recentCutoffDate;
+        const rowStyle = isNew ? ' style="background:rgba(0,255,136,0.1);"' : '';
+        const createdStyle = isNew ? 'color:#00FF88;font-weight:bold;' : '';
+
         return `
-          <tr>
+          <tr${rowStyle}>
             <td>${event.url ? `<a href="${event.url}" target="_blank">${escapeHtml(event.title) || '—'}</a>` : (escapeHtml(event.title) || '—')}</td>
             <td>${escapeHtml(event.venue) || '—'}</td>
             <td>${translateCity(event.city)}</td>
             <td class="date-cell">${dateFrom}</td>
             <td class="date-cell">${dateTo}</td>
-            <td class="date-cell">${createdDate}</td>
+            <td class="date-cell" style="${createdStyle}">${createdDate}</td>
             <td class="comment-cell">
               <span class="comment-text ${commentClass}" data-id="${event.id}" data-url="${escapeAttr(event.url)}" data-title="${escapeAttr(event.title)}" data-comment="${escapeAttr(event.comments)}">${commentText}</span>
             </td>
@@ -1536,6 +1714,46 @@
           </tr>
         `;
       }).join('');
+    }
+
+    // Показать недавно добавленные события
+    function showRecentlyAdded(days) {
+      showingRecentMode = true;
+
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      recentCutoffDate = cutoff.toISOString().substring(0, 10);
+
+      // Фильтруем по дате добавления
+      const recentEvents = allData.filter(e => {
+        if (!e.created_at) return false;
+        return e.created_at.substring(0, 10) >= recentCutoffDate;
+      });
+
+      // Сортируем по дате добавления (новые первыми)
+      recentEvents.sort((a, b) => {
+        const dateA = a.created_at || '';
+        const dateB = b.created_at || '';
+        return dateB.localeCompare(dateA);
+      });
+
+      filteredData = recentEvents;
+      renderStats();
+      renderTable();
+
+      // Обновляем статус
+      const statusEl = document.getElementById('status');
+      statusEl.className = 'status success';
+      statusEl.innerHTML = `🆕 Показано ${recentEvents.length} событий, добавленных за последние ${days} дней <button onclick="clearRecentMode()" style="background:#333;color:#fff;border:2px solid #555;padding:5px 15px;margin-left:10px;cursor:pointer;font-family:inherit;">✕ Показать все</button>`;
+    }
+
+    // Сброс режима "новые"
+    function clearRecentMode() {
+      showingRecentMode = false;
+      recentCutoffDate = null;
+      applyFilters();
+      const statusEl = document.getElementById('status');
+      statusEl.innerHTML = `✅ Загружено ${allData.length} событий из ${currentTable}`;
     }
 
     // Подгрузка дополнительных строк
