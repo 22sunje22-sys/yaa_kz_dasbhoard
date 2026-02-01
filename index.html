@@ -3,20 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YAA Events - Dashboard</title>
-  <!-- Flatpickr CSS -->
+  <title>YAA ЦЕРЕБРО</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #000;
+      font-family: 'Press Start 2P', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
       color: #fff;
       min-height: 100vh;
+      font-size: 10px;
+      line-height: 1.8;
     }
 
-    /* Login Screen */
+    /* 8-bit pixel border effect */
+    .pixel-border {
+      border: 4px solid #00FF88;
+      box-shadow:
+        4px 4px 0 #00AA55,
+        -2px -2px 0 #00FF88 inset;
+    }
+
+    /* Logo image */
+    .logo-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 0;
+      margin-bottom: 15px;
+      image-rendering: pixelated;
+      border: 3px solid #00FF88;
+      box-shadow: 3px 3px 0 #00AA55;
+    }
+
+    /* 8-bit animated brain logo */
+    .brain-logo {
+      font-size: 48px;
+      margin-bottom: 10px;
+      animation: pulse 1.5s ease-in-out infinite;
+      text-shadow: 3px 3px 0 #00AA55;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.7; }
+    }
+    @keyframes scanline {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 4px; }
+    }
+
+    /* Glitch effect for title */
+    .glitch-title {
+      position: relative;
+    }
+    .glitch-title::before,
+    .glitch-title::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .glitch-title::before {
+      left: 2px;
+      text-shadow: -2px 0 #ff0066;
+      animation: glitch1 2s infinite linear alternate-reverse;
+      clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+    }
+    .glitch-title::after {
+      left: -2px;
+      text-shadow: 2px 0 #00ccff;
+      animation: glitch2 3s infinite linear alternate-reverse;
+      clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+    }
+    @keyframes glitch1 {
+      0%, 90%, 100% { transform: translateX(0); }
+      92%, 94%, 96%, 98% { transform: translateX(-2px); }
+      91%, 93%, 95%, 97%, 99% { transform: translateX(2px); }
+    }
+    @keyframes glitch2 {
+      0%, 90%, 100% { transform: translateX(0); }
+      92%, 94%, 96%, 98% { transform: translateX(2px); }
+      91%, 93%, 95%, 97%, 99% { transform: translateX(-2px); }
+    }
+
+    /* Selection Screens */
+    .selection-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.03) 2px, rgba(0,255,136,0.03) 4px),
+        linear-gradient(135deg, #0a0a0a 0%, #0a1a0a 100%);
+    }
+    .selection-box {
+      background: #111;
+      padding: 40px;
+      border-radius: 0;
+      border: 4px solid #00FF88;
+      box-shadow: 6px 6px 0 #00AA55;
+      text-align: center;
+      max-width: 520px;
+      width: 90%;
+    }
+    .selection-box h1 { color: #00FF88; margin-bottom: 10px; font-size: 16px; text-shadow: 2px 2px 0 #00AA55; }
+    .selection-box p { color: #888; margin-bottom: 30px; font-size: 8px; }
+    .selection-box .subtitle { color: #666; font-size: 12px; margin-top: -20px; margin-bottom: 30px; }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .choice-btn {
+      padding: 25px 15px;
+      background: #1a1a1a;
+      border: 3px solid #333;
+      border-radius: 0;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-align: center;
+    }
+    .choice-btn:hover {
+      border-color: #00FF88;
+      background: #1a2a1a;
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0 #00AA55;
+    }
+    .choice-btn.selected {
+      border-color: #00FF88;
+      background: rgba(0,255,136,0.15);
+      box-shadow: 4px 4px 0 #00AA55;
+    }
+    .choice-btn .flag { font-size: 36px; margin-bottom: 10px; }
+    .choice-btn .label { font-size: 11px; font-weight: bold; color: #00FF88; text-shadow: 1px 1px 0 #00AA55; }
+    .choice-btn .desc { font-size: 7px; color: #888; margin-top: 8px; line-height: 1.6; font-family: -apple-system, sans-serif; }
+
+    .btn-continue {
+      width: 100%;
+      padding: 14px;
+      background: #00FF88;
+      color: #000;
+      border: 3px solid #00AA55;
+      border-radius: 0;
+      font-weight: bold;
+      font-size: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 4px 4px 0 #006633;
+      text-transform: uppercase;
+    }
+    .btn-continue:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #006633;
+    }
+    .btn-continue:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #006633;
+    }
+    .btn-continue:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 #333; }
+
+    .btn-back {
+      background: transparent;
+      border: 2px solid #444;
+      color: #888;
+      padding: 10px 20px;
+      border-radius: 0;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 8px;
+    }
+    .btn-back:hover { border-color: #00FF88; color: #00FF88; }
+
+    /* Login Screen - 8-bit style */
     .login-screen {
       min-height: 100vh;
       display: flex;
@@ -24,74 +195,341 @@
       justify-content: center;
       flex-direction: column;
       gap: 20px;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.03) 2px, rgba(0,255,136,0.03) 4px),
+        linear-gradient(135deg, #0a0a0a 0%, #0a1a0a 100%);
     }
     .login-box {
-      background: #1a1a1a;
+      background: #111;
       padding: 40px;
-      border-radius: 16px;
-      border: 1px solid #333;
+      border-radius: 0;
+      border: 4px solid #00FF88;
+      box-shadow: 6px 6px 0 #00AA55;
       text-align: center;
-      min-width: 300px;
+      min-width: 320px;
     }
-    .login-box h1 { color: #00FF88; margin-bottom: 10px; font-size: 28px; }
-    .login-box p { color: #666; margin-bottom: 30px; }
+    .login-box h1 { color: #00FF88; margin-bottom: 10px; font-size: 14px; text-shadow: 2px 2px 0 #00AA55; }
+    .login-box p { color: #666; margin-bottom: 30px; font-size: 8px; }
     .login-box input {
       width: 100%;
       padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #222;
+      border-radius: 0;
+      border: 3px solid #333;
+      background: #1a1a1a;
       color: #fff;
-      font-size: 16px;
+      font-size: 12px;
+      font-family: 'Press Start 2P', monospace;
       margin-bottom: 15px;
       outline: none;
     }
-    .login-box input:focus { border-color: #00FF88; }
+    .login-box input:focus { border-color: #00FF88; box-shadow: 3px 3px 0 #00AA55; }
     .login-box button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: #00FF88;
       color: #000;
-      border: none;
-      border-radius: 8px;
+      border: 3px solid #00AA55;
+      border-radius: 0;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 10px;
+      font-family: 'Press Start 2P', monospace;
       cursor: pointer;
+      box-shadow: 4px 4px 0 #006633;
+      text-transform: uppercase;
     }
-    .login-box button:hover { opacity: 0.9; }
-    .login-error { color: #ff6666; margin-top: 10px; display: none; }
+    .login-box button:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #006633; }
+    .login-box button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #006633; }
+    .login-error { color: #ff6666; margin-top: 10px; display: none; font-size: 8px; }
 
-    /* Dashboard */
-    .dashboard { display: none; padding: 20px; }
+    /* Dashboard - 8-bit style */
+    .dashboard {
+      display: none;
+      padding: 20px;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.02) 2px, rgba(0,255,136,0.02) 4px);
+    }
     .dashboard.active { display: block; }
 
-    h1 { color: #00FF88; margin-bottom: 5px; }
-    .subtitle { color: #666; margin-bottom: 20px; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #111;
+      border: 3px solid #00FF88;
+      box-shadow: 4px 4px 0 #00AA55;
+    }
+    h1 { color: #00FF88; margin-bottom: 5px; font-size: 12px; text-shadow: 2px 2px 0 #00AA55; }
+    .subtitle { color: #666; margin-bottom: 20px; font-size: 8px; }
+    .mode-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 0;
+      font-size: 8px;
+      font-weight: bold;
+      margin-left: 10px;
+      border: 2px solid;
+    }
+    .mode-sales { background: #00FF88; color: #000; border-color: #00AA55; }
+    .mode-marketing { background: #FF6B00; color: #fff; border-color: #CC5500; }
+    .region-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 0;
+      font-size: 8px;
+      font-weight: bold;
+      background: #333;
+      color: #00FF88;
+      margin-left: 5px;
+      border: 2px solid #00FF88;
+    }
 
     .status {
       padding: 15px;
-      border-radius: 8px;
+      border-radius: 0;
       margin: 20px 0;
-      border: 1px solid #333;
+      border: 3px solid #333;
+      font-size: 9px;
+      box-shadow: 3px 3px 0 #222;
     }
-    .loading { background: #1a1a1a; color: #00FF88; }
+    .loading { background: #1a1a1a; color: #00FF88; border-color: #00FF88; }
     .success { background: rgba(0,255,136,0.1); border-color: #00FF88; }
     .error { background: rgba(255,0,0,0.1); border-color: #ff4444; color: #ff6666; }
 
-    /* Filters */
-    .filters {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 12px;
+    /* Competitor Search (for Marketing mode) - 8-bit style */
+    .competitor-section {
+      background: #111;
+      border: 3px solid #FF6B00;
+      border-radius: 0;
       padding: 20px;
       margin-bottom: 20px;
+      box-shadow: 4px 4px 0 #CC5500;
+    }
+    .competitor-title {
+      color: #FF6B00;
+      font-size: 10px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-shadow: 1px 1px 0 #CC5500;
+    }
+    .competitor-form {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .competitor-form .filter-group { flex: 1; min-width: 150px; }
+    .competitor-form .filter-group label { color: #FF6B00; }
+    .competitor-form .btn-search {
+      background: #FF6B00;
+      color: #fff;
+      padding: 10px 25px;
+      white-space: nowrap;
+      border: 3px solid #CC5500;
+      box-shadow: 3px 3px 0 #993300;
+    }
+    .competitor-form .btn-search:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 #993300;
+    }
+    .competitor-results {
+      margin-top: 20px;
+      display: none;
+    }
+    .competitor-results.active { display: block; }
+    .competitor-results-title {
+      color: #FF6B00;
+      font-size: 9px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .competitor-results-title .count {
+      background: #FF6B00;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 0;
+      font-size: 9px;
+      border: 2px solid #CC5500;
+    }
+    .competitor-card {
+      background: #1a1a1a;
+      border: 2px solid #333;
+      border-radius: 0;
+      padding: 12px 15px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .competitor-card:hover { border-color: #FF6B00; box-shadow: 2px 2px 0 #CC5500; }
+    .competitor-info { flex: 1; }
+    .competitor-event-title { color: #FF6B00; font-weight: bold; font-size: 9px; }
+    .competitor-event-title a { color: #FF6B00; text-decoration: none; }
+    .competitor-event-title a:hover { text-decoration: underline; }
+    .competitor-meta { color: #666; font-size: 8px; margin-top: 4px; font-family: -apple-system, sans-serif; }
+    .competitor-dates { color: #888; font-size: 8px; white-space: nowrap; text-align: right; font-family: -apple-system, sans-serif; }
+    .competitor-price { color: #FF6B00; font-weight: bold; font-size: 9px; }
+
+    /* AI Search Section - 8-bit style */
+    .ai-search-section {
+      background: #111;
+      border: 3px solid #00CCFF;
+      border-radius: 0;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 4px 4px 0 #0088AA;
+    }
+    .ai-search-title {
+      color: #00CCFF;
+      font-size: 10px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-shadow: 1px 1px 0 #0088AA;
+    }
+    .ai-search-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ai-search-input {
+      flex: 1;
+      min-width: 250px;
+      padding: 12px 15px;
+      border: 3px solid #333;
+      border-radius: 0;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 12px;
+      font-family: -apple-system, sans-serif;
+      outline: none;
+    }
+    .ai-search-input:focus {
+      border-color: #00CCFF;
+      box-shadow: 3px 3px 0 #0088AA;
+    }
+    .ai-search-input::placeholder {
+      color: #555;
+      font-style: italic;
+    }
+    .btn-ai-search {
+      background: #00CCFF;
+      color: #000;
+      border: 3px solid #0088AA;
+      padding: 12px 25px;
+      font-size: 9px;
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 #006688;
+      text-transform: uppercase;
+    }
+    .btn-ai-search:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 #006688;
+    }
+    .ai-search-examples {
+      margin-top: 10px;
+      font-size: 8px;
+      color: #666;
+      font-family: -apple-system, sans-serif;
+    }
+    .ai-search-examples span {
+      color: #00CCFF;
+      cursor: pointer;
+      margin-right: 15px;
+    }
+    .ai-search-examples span:hover {
+      text-decoration: underline;
+    }
+    .ai-search-results {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #333;
+      display: none;
+    }
+    .ai-search-results.active {
+      display: block;
+    }
+    .ai-search-results-info {
+      color: #00CCFF;
+      font-size: 9px;
+      margin-bottom: 10px;
+    }
+
+    /* New Events Section (for Sales mode) - 8-bit style */
+    .new-events-section {
+      background: #111;
+      border: 3px solid #00FF88;
+      border-radius: 0;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 4px 4px 0 #00AA55;
+    }
+    .new-events-title {
+      color: #00FF88;
+      font-size: 10px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 1px 1px 0 #00AA55;
+    }
+    .new-events-title .count {
+      background: #00FF88;
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 0;
+      font-size: 9px;
+      border: 2px solid #00AA55;
+    }
+    .new-events-list {
+      display: grid;
+      gap: 10px;
+    }
+    .new-event-card {
+      background: #1a1a1a;
+      border: 2px solid #333;
+      border-radius: 0;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .new-event-card:hover { border-color: #00FF88; box-shadow: 2px 2px 0 #00AA55; }
+    .new-event-info { flex: 1; }
+    .new-event-title { color: #00FF88; font-weight: bold; font-size: 9px; }
+    .new-event-title a { color: #00FF88; text-decoration: none; }
+    .new-event-title a:hover { text-decoration: underline; }
+    .new-event-meta { color: #666; font-size: 8px; margin-top: 4px; font-family: -apple-system, sans-serif; }
+    .new-event-date { color: #888; font-size: 8px; white-space: nowrap; font-family: -apple-system, sans-serif; }
+
+    /* Filters - 8-bit style */
+    .filters {
+      background: #111;
+      border: 3px solid #00FF88;
+      border-radius: 0;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 4px 4px 0 #00AA55;
     }
     .filters-title {
       color: #00FF88;
-      font-size: 12px;
+      font-size: 9px;
       font-weight: bold;
       margin-bottom: 15px;
       text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-shadow: 1px 1px 0 #00AA55;
     }
     .filters-grid {
       display: grid;
@@ -101,7 +539,7 @@
     .filter-group label {
       display: block;
       color: #888;
-      font-size: 11px;
+      font-size: 7px;
       margin-bottom: 5px;
       text-transform: uppercase;
     }
@@ -109,15 +547,16 @@
     .filter-group select {
       width: 100%;
       padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #222;
+      border-radius: 0;
+      border: 2px solid #333;
+      background: #1a1a1a;
       color: #fff;
-      font-size: 14px;
+      font-size: 11px;
+      font-family: -apple-system, sans-serif;
       outline: none;
     }
     .filter-group input:focus,
-    .filter-group select:focus { border-color: #00FF88; }
+    .filter-group select:focus { border-color: #00FF88; box-shadow: 2px 2px 0 #00AA55; }
 
     .stats {
       display: grid;
@@ -126,159 +565,137 @@
       margin: 20px 0;
     }
     .stat-card {
-      background: #1a1a1a;
-      border: 1px solid #00FF8840;
-      border-radius: 12px;
+      background: #111;
+      border: 3px solid #00FF88;
+      border-radius: 0;
       padding: 20px;
+      box-shadow: 3px 3px 0 #00AA55;
     }
-    .stat-label { color: #888; font-size: 11px; text-transform: uppercase; }
-    .stat-value { color: #00FF88; font-size: 28px; font-weight: bold; margin-top: 5px; }
+    .stat-label { color: #888; font-size: 7px; text-transform: uppercase; }
+    .stat-value { color: #00FF88; font-size: 18px; font-weight: bold; margin-top: 5px; text-shadow: 2px 2px 0 #00AA55; }
 
     .btn-group { margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; }
     .btn {
       background: #00FF88;
       color: #000;
-      border: none;
+      border: 3px solid #00AA55;
       padding: 10px 20px;
-      border-radius: 8px;
+      border-radius: 0;
       font-weight: bold;
+      font-size: 8px;
       cursor: pointer;
+      box-shadow: 3px 3px 0 #006633;
+      text-transform: uppercase;
     }
-    .btn:hover { opacity: 0.9; }
-    .btn-secondary {
-      background: #333;
-      color: #fff;
-    }
-    .btn-logout {
-      background: transparent;
-      border: 1px solid #ff4444;
-      color: #ff4444;
-    }
+    .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 #006633; }
+    .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #006633; }
+    .btn-secondary { background: #333; color: #fff; border-color: #222; box-shadow: 3px 3px 0 #111; }
+    .btn-secondary:hover { box-shadow: 5px 5px 0 #111; }
+    .btn-logout { background: transparent; border: 2px solid #ff4444; color: #ff4444; box-shadow: 3px 3px 0 #990000; }
+    .btn-logout:hover { box-shadow: 5px 5px 0 #990000; }
+    .btn-change { background: transparent; border: 2px solid #00FF88; color: #00FF88; box-shadow: 3px 3px 0 #00AA55; }
+    .btn-change:hover { box-shadow: 5px 5px 0 #00AA55; }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      font-family: -apple-system, sans-serif;
     }
     th {
       text-align: left;
       padding: 12px;
-      color: #666;
-      border-bottom: 1px solid #333;
-      font-size: 11px;
+      color: #00FF88;
+      border-bottom: 3px solid #00FF88;
+      font-size: 8px;
       text-transform: uppercase;
       position: sticky;
       top: 0;
-      background: #000;
+      background: #0a0a0a;
+      font-family: 'Press Start 2P', monospace;
     }
     td {
       padding: 12px;
-      border-bottom: 1px solid #222;
+      border-bottom: 2px solid #222;
       color: #999;
-      font-size: 14px;
+      font-size: 12px;
     }
     td:first-child { color: #00FF88; }
     .price-cell { color: #00FF88; text-align: right; font-weight: bold; }
-    .date-cell { color: #888; font-size: 12px; }
+    .date-cell { color: #888; font-size: 11px; }
     a { color: #00FF88; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    tr:hover { background: rgba(0,255,136,0.05); }
+    a:hover { text-decoration: underline; color: #66FFAA; }
+    tr:hover { background: rgba(0,255,136,0.08); }
 
     .table-container {
       max-height: 600px;
       overflow-y: auto;
-      border: 1px solid #333;
-      border-radius: 12px;
-    }
-
-    pre {
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-size: 12px;
-      color: #888;
-      margin-top: 10px;
+      border: 3px solid #00FF88;
+      border-radius: 0;
+      box-shadow: 4px 4px 0 #00AA55;
+      background: #0a0a0a;
     }
 
     .results-info {
       color: #666;
       text-align: center;
       padding: 10px;
-      font-size: 13px;
+      font-size: 8px;
     }
 
-    /* Comments */
-    .comment-cell {
-      max-width: 200px;
-      font-size: 12px;
-      color: #888;
-    }
+    /* Comments - 8-bit style */
+    .comment-cell { max-width: 200px; font-size: 11px; color: #888; }
     .comment-text {
       cursor: pointer;
       padding: 4px 8px;
-      border-radius: 4px;
-      background: #222;
-      border: 1px solid #333;
+      border-radius: 0;
+      background: #1a1a1a;
+      border: 2px solid #333;
       min-height: 24px;
       display: inline-block;
       min-width: 100px;
+      font-size: 10px;
     }
-    .comment-text:hover {
-      border-color: #00FF88;
-    }
-    .comment-text.empty {
-      color: #555;
-      font-style: italic;
-    }
-    .comment-text.has-comment {
-      color: #00FF88;
-    }
+    .comment-text:hover { border-color: #00FF88; box-shadow: 2px 2px 0 #00AA55; }
+    .comment-text.empty { color: #555; font-style: italic; }
+    .comment-text.has-comment { color: #00FF88; }
 
-    /* Modal */
+    /* Modal - 8-bit style */
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.8);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.9);
       z-index: 1000;
       align-items: center;
       justify-content: center;
     }
     .modal-overlay.active { display: flex; }
     .modal {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 16px;
+      background: #111;
+      border: 4px solid #00FF88;
+      border-radius: 0;
       padding: 30px;
       max-width: 500px;
       width: 90%;
+      box-shadow: 6px 6px 0 #00AA55;
     }
-    .modal h3 {
-      color: #00FF88;
-      margin-bottom: 10px;
-    }
-    .modal-event-title {
-      color: #888;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
+    .modal h3 { color: #00FF88; margin-bottom: 10px; font-size: 11px; text-shadow: 2px 2px 0 #00AA55; }
+    .modal-event-title { color: #888; font-size: 9px; margin-bottom: 20px; font-family: -apple-system, sans-serif; }
     .modal textarea {
       width: 100%;
       min-height: 120px;
       padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #222;
+      border-radius: 0;
+      border: 3px solid #333;
+      background: #1a1a1a;
       color: #fff;
-      font-size: 14px;
+      font-size: 12px;
+      font-family: -apple-system, sans-serif;
       resize: vertical;
       outline: none;
     }
-    .modal textarea:focus { border-color: #00FF88; }
+    .modal textarea:focus { border-color: #00FF88; box-shadow: 3px 3px 0 #00AA55; }
     .modal-buttons {
       display: flex;
       gap: 10px;
@@ -287,172 +704,77 @@
     }
     .modal-buttons button {
       padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
+      border-radius: 0;
+      border: 3px solid;
       font-weight: bold;
       cursor: pointer;
+      font-size: 9px;
+      font-family: 'Press Start 2P', monospace;
+      text-transform: uppercase;
     }
-    .btn-save { background: #00FF88; color: #000; }
-    .btn-cancel { background: #333; color: #fff; }
-    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-save { background: #00FF88; color: #000; border-color: #00AA55; box-shadow: 3px 3px 0 #006633; }
+    .btn-save:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 #006633; }
+    .btn-cancel { background: #333; color: #fff; border-color: #222; box-shadow: 3px 3px 0 #111; }
+    .btn-cancel:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 #111; }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 #333; }
 
-    /* Flatpickr customization */
-    .flatpickr-calendar {
-      background: #1a1a1a !important;
-      border: 1px solid #333 !important;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
-    }
-    .flatpickr-months .flatpickr-month {
-      background: #1a1a1a !important;
-      color: #00FF88 !important;
-    }
-    .flatpickr-current-month .flatpickr-monthDropdown-months {
-      background: #1a1a1a !important;
-      color: #00FF88 !important;
-    }
-    .flatpickr-current-month input.cur-year {
-      color: #00FF88 !important;
-    }
-    .flatpickr-months .flatpickr-prev-month,
-    .flatpickr-months .flatpickr-next-month {
-      color: #00FF88 !important;
-      fill: #00FF88 !important;
-    }
-    .flatpickr-months .flatpickr-prev-month:hover svg,
-    .flatpickr-months .flatpickr-next-month:hover svg {
-      fill: #fff !important;
-    }
-    .flatpickr-weekdays {
-      background: #1a1a1a !important;
-    }
-    span.flatpickr-weekday {
-      color: #666 !important;
-      background: #1a1a1a !important;
-    }
-    .flatpickr-days {
-      background: #1a1a1a !important;
-    }
-    .flatpickr-day {
-      color: #fff !important;
-      border-radius: 4px !important;
-    }
-    .flatpickr-day:hover {
-      background: #333 !important;
-      border-color: #333 !important;
-    }
-    .flatpickr-day.selected {
-      background: #00FF88 !important;
-      border-color: #00FF88 !important;
-      color: #000 !important;
-    }
-    .flatpickr-day.today {
-      border-color: #00FF88 !important;
-    }
-    .flatpickr-day.prevMonthDay,
-    .flatpickr-day.nextMonthDay {
-      color: #444 !important;
+    /* Flatpickr */
+    .flatpickr-calendar { background: #1a1a1a !important; border: 1px solid #333 !important; }
+    .flatpickr-months .flatpickr-month { background: #1a1a1a !important; color: #00FF88 !important; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months { background: #1a1a1a !important; color: #00FF88 !important; }
+    .flatpickr-current-month input.cur-year { color: #00FF88 !important; }
+    .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { color: #00FF88 !important; fill: #00FF88 !important; }
+    .flatpickr-weekdays { background: #1a1a1a !important; }
+    span.flatpickr-weekday { color: #666 !important; background: #1a1a1a !important; }
+    .flatpickr-days { background: #1a1a1a !important; }
+    .flatpickr-day { color: #fff !important; border-radius: 4px !important; }
+    .flatpickr-day:hover { background: #333 !important; border-color: #333 !important; }
+    .flatpickr-day.selected { background: #00FF88 !important; border-color: #00FF88 !important; color: #000 !important; }
+    .flatpickr-day.today { border-color: #00FF88 !important; }
+    .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: #444 !important; }
+
+    /* Pixel cursor blink effect */
+    .login-box input::placeholder {
+      animation: blink 1s step-end infinite;
     }
 
-    /* Mobile Optimizations */
+    /* Scrollbar - 8-bit style */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111;
+      border: 2px solid #00FF88;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #00FF88;
+      border: 2px solid #00AA55;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00AA55;
+    }
+
+    /* Mobile */
     @media (max-width: 768px) {
-      body { font-size: 14px; }
+      body { font-size: 9px; }
       .dashboard { padding: 10px; }
-
-      .login-box {
-        padding: 25px;
-        min-width: 90vw;
-        margin: 10px;
-      }
-      .login-box h1 { font-size: 24px; }
-
-      .filters { padding: 15px; }
-      .filters-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      .filter-group input,
-      .filter-group select {
-        padding: 12px;
-        font-size: 16px; /* Prevents zoom on iOS */
-      }
-
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-      .stat-card { padding: 15px; }
-      .stat-value { font-size: 22px; }
-
-      .btn-group {
-        flex-direction: column;
-      }
-      .btn-group .btn {
-        width: 100%;
-        padding: 14px;
-      }
-
-      .table-container {
-        max-height: none;
-        overflow-x: auto;
-      }
-      table {
-        min-width: 800px;
-        font-size: 13px;
-      }
-      th, td { padding: 10px 8px; }
-
-      .comment-text {
-        padding: 8px 10px;
-        font-size: 13px;
-      }
-
-      .modal {
-        padding: 20px;
-        max-width: 95vw;
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-      .modal textarea {
-        font-size: 16px; /* Prevents zoom on iOS */
-        min-height: 150px;
-      }
-      .modal-buttons {
-        flex-direction: column;
-      }
-      .modal-buttons button {
-        width: 100%;
-        padding: 14px;
-      }
-
-      /* Header */
-      h1 { font-size: 22px; }
-      .subtitle { font-size: 12px; }
-    }
-
-    @media (max-width: 480px) {
-      .stats {
-        grid-template-columns: 1fr 1fr;
-      }
-      .stat-card { padding: 12px; }
-      .stat-value { font-size: 20px; }
-      .stat-label { font-size: 10px; }
-    }
-
-    /* Touch-friendly */
-    @media (hover: none) {
-      .comment-text:hover {
-        border-color: #333;
-      }
-      .comment-text:active {
-        border-color: #00FF88;
-        background: #333;
-      }
-      tr:hover {
-        background: transparent;
-      }
-      tr:active {
-        background: rgba(0,255,136,0.05);
-      }
+      .header { flex-direction: column; align-items: flex-start; padding: 10px; }
+      .header > div:last-child { width: 100%; display: flex; gap: 10px; }
+      .header > div:last-child .btn { flex: 1; font-size: 7px; padding: 8px 10px; }
+      .choice-grid { grid-template-columns: 1fr; }
+      .filters-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stat-value { font-size: 14px; }
+      .btn-group { flex-direction: column; }
+      .btn-group .btn { width: 100%; }
+      .table-container { overflow-x: auto; }
+      table { min-width: 700px; font-size: 11px; }
+      th { font-size: 7px; }
+      .new-event-card { flex-direction: column; align-items: flex-start; }
+      .brain-logo { font-size: 36px; }
+      .login-box, .selection-box { padding: 25px; }
+      h1 { font-size: 10px; }
     }
   </style>
 </head>
@@ -461,31 +783,137 @@
   <!-- Login Screen -->
   <div id="login-screen" class="login-screen">
     <div class="login-box">
-      <h1>🎭 YAA EVENTS</h1>
-      <p>Введите пароль для доступа</p>
-      <input type="password" id="password-input" placeholder="Пароль" onkeypress="if(event.key==='Enter')login()">
-      <button onclick="login()">Войти</button>
-      <p class="login-error" id="login-error">Неверный пароль</p>
+      <div class="brain-logo">🧠</div>
+      <h1 class="glitch-title" data-text="YAA ЦЕРЕБРО">YAA ЦЕРЕБРО</h1>
+      <p>ВВЕДИТЕ ПАРОЛЬ ДЛЯ ДОСТУПА</p>
+      <input type="password" id="password-input" placeholder="* * * * * *" onkeypress="if(event.key==='Enter')login()">
+      <button onclick="login()">[ ВОЙТИ ]</button>
+      <p class="login-error" id="login-error">// НЕВЕРНЫЙ ПАРОЛЬ //</p>
+    </div>
+  </div>
+
+  <!-- Region Selection -->
+  <div id="region-screen" class="selection-screen" style="display:none;">
+    <div class="selection-box">
+      <div class="brain-logo">🧠</div>
+      <h1 class="glitch-title" data-text="YAA ЦЕРЕБРО">YAA ЦЕРЕБРО</h1>
+      <p>ВЫБЕРИТЕ РЕГИОН</p>
+      <div class="choice-grid">
+        <div class="choice-btn" data-region="kz" onclick="selectRegion('kz')">
+          <div class="flag">🇰🇿</div>
+          <div class="label">YAA KZ</div>
+          <div class="desc">Казахстан</div>
+        </div>
+        <div class="choice-btn" data-region="ru" onclick="selectRegion('ru')">
+          <div class="flag">🇷🇺</div>
+          <div class="label">YAA RU</div>
+          <div class="desc">Россия</div>
+        </div>
+      </div>
+      <button class="btn-continue" id="btn-region-continue" onclick="confirmRegion()" disabled>[ ПРОДОЛЖИТЬ ]</button>
+      <button class="btn-back" onclick="logout()">◄ ВЫЙТИ</button>
+    </div>
+  </div>
+
+  <!-- Purpose Selection -->
+  <div id="purpose-screen" class="selection-screen" style="display:none;">
+    <div class="selection-box">
+      <div class="brain-logo">🧠</div>
+      <h1 class="glitch-title" data-text="YAA">YAA <span id="purpose-region-label">KZ</span></h1>
+      <p>ВЫБЕРИТЕ РЕЖИМ РАБОТЫ</p>
+      <div class="choice-grid">
+        <div class="choice-btn" data-purpose="sales" onclick="selectPurpose('sales')">
+          <div class="flag">💰</div>
+          <div class="label">Продажи</div>
+          <div class="desc">Все события + новые для связи с организаторами. Исторические данные.</div>
+        </div>
+        <div class="choice-btn" data-purpose="marketing" onclick="selectPurpose('marketing')">
+          <div class="flag">📢</div>
+          <div class="label">Маркетинг</div>
+          <div class="desc">Только актуальные события. Без исторических данных.</div>
+        </div>
+      </div>
+      <button class="btn-continue" id="btn-purpose-continue" onclick="confirmPurpose()" disabled>[ ПРОДОЛЖИТЬ ]</button>
+      <button class="btn-back" onclick="backToRegion()">◄ НАЗАД</button>
     </div>
   </div>
 
   <!-- Dashboard -->
   <div id="dashboard" class="dashboard">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div class="header">
       <div>
-        <h1>🎭 YAA EVENTS</h1>
-        <p class="subtitle">Live Dashboard • Supabase</p>
+        <h1>🧠 YAA ЦЕРЕБРО
+          <span class="region-badge" id="dash-region"></span>
+          <span class="mode-badge" id="dash-mode"></span>
+        </h1>
+        <p class="subtitle">// LIVE DASHBOARD • <span id="dash-table-name"></span> //</p>
       </div>
-      <button class="btn btn-logout" onclick="logout()">Выйти</button>
+      <div>
+        <button class="btn btn-change" onclick="changeMode()">◄ РЕЖИМ</button>
+        <button class="btn btn-logout" onclick="logout()">✕ ВЫХОД</button>
+      </div>
     </div>
 
     <div id="status" class="status loading">⏳ Подключение к Supabase...</div>
 
+    <!-- AI Search -->
+    <div id="ai-search-section" class="ai-search-section">
+      <div class="ai-search-title">🤖 УМНЫЙ ПОИСК — спроси как человека</div>
+      <div class="ai-search-form">
+        <input type="text" id="ai-search-input" class="ai-search-input" placeholder="Например: концерты в Москве 15 марта или стендап в Алматы дешевле 5000" onkeypress="if(event.key==='Enter')aiSearch()">
+        <button class="btn-ai-search" onclick="aiSearch()">🔍 НАЙТИ</button>
+      </div>
+      <div class="ai-search-examples">
+        Примеры:
+        <span onclick="setAiQuery('концерты в Москве на следующей неделе')">концерты в Москве</span>
+        <span onclick="setAiQuery('стендап в Алматы дешевле 5000')">стендап дешевле 5000</span>
+        <span onclick="setAiQuery('театр в Санкт-Петербурге в марте')">театр в марте</span>
+        <span onclick="setAiQuery('новые события за сегодня')">новые за сегодня</span>
+      </div>
+      <div class="ai-search-results" id="ai-search-results">
+        <div class="ai-search-results-info" id="ai-search-info"></div>
+      </div>
+    </div>
+
+    <!-- Competitor Search (only for Marketing mode) -->
+    <div id="competitor-section" class="competitor-section" style="display:none;">
+      <div class="competitor-title">🎯 Поиск конкурентов — укажите дату и город вашего события</div>
+      <div class="competitor-form">
+        <div class="filter-group">
+          <label>Дата события</label>
+          <input type="date" id="competitor-date">
+        </div>
+        <div class="filter-group">
+          <label>Город</label>
+          <select id="competitor-city">
+            <option value="">Выберите город</option>
+          </select>
+        </div>
+        <button class="btn btn-search" onclick="searchCompetitors()">🔍 Найти конкурентов</button>
+      </div>
+      <div class="competitor-results" id="competitor-results">
+        <div class="competitor-results-title">
+          Конкуренты на <span id="competitor-date-display"></span> в городе <span id="competitor-city-display"></span>
+          <span class="count" id="competitor-count">0</span>
+        </div>
+        <div id="competitor-list"></div>
+      </div>
+    </div>
+
+    <!-- New Events Section (only for Sales mode) -->
+    <div id="new-events-section" class="new-events-section" style="display:none;">
+      <div class="new-events-title">
+        🆕 Новые события за последние 3 дня
+        <span class="count" id="new-events-count">0</span>
+      </div>
+      <div class="new-events-list" id="new-events-list"></div>
+    </div>
+
     <!-- Filters -->
     <div class="filters">
-      <div class="filters-title" onclick="toggleFilters()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+      <div class="filters-title" onclick="toggleFilters()">
         <span>🔍 Фильтры</span>
-        <span id="filters-toggle" style="font-size:18px;">▼</span>
+        <span id="filters-toggle">▼</span>
       </div>
       <div class="filters-grid" id="filters-grid">
         <div class="filter-group">
@@ -532,19 +960,13 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn" onclick="fetchData()">🔄 Обновить</button>
-      <button class="btn btn-secondary" onclick="clearFilters()">✕ Сбросить фильтры</button>
-      <button class="btn btn-secondary" onclick="toggleRawData()">📋 RAW данные</button>
+      <button class="btn" onclick="fetchData()">↻ ОБНОВИТЬ</button>
+      <button class="btn btn-secondary" onclick="clearFilters()">✕ СБРОС ФИЛЬТРОВ</button>
+      <button class="btn btn-secondary" onclick="exportCSV()" style="background:#00CCFF;color:#000;border-color:#0088AA;">📥 СКАЧАТЬ CSV</button>
     </div>
 
     <div id="stats" class="stats"></div>
-
     <div id="table-container"></div>
-
-    <div id="raw-data" style="display:none;">
-      <h3 style="color:#00FF88; margin-top:20px;">RAW Response:</h3>
-      <pre id="raw-json"></pre>
-    </div>
   </div>
 
   <!-- Comment Modal -->
@@ -566,78 +988,225 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZmhqbmJwYmprbmNscmJjdWpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMzIwMTIsImV4cCI6MjA2NjcwODAxMn0.bWXoX_8q89lEFlMCDZ1I2iwUL1CTsU8LNCCn3nO3E3Y';
     const PASSWORD = 'yaarulezz';
 
+    // Tables mapping
+    const TABLES = {
+      'kz': {
+        'sales': 'yaa_events',
+        'marketing': 'yaa_events_clean'
+      },
+      'ru': {
+        'sales': 'yaa_events_ru',
+        'marketing': 'yaa_events_ru_clean'
+      }
+    };
+
+    // Currency mapping
+    const CURRENCY = {
+      'kz': '₸',
+      'ru': '₽'
+    };
+
     let allData = [];
     let filteredData = [];
+    let newEvents = [];
+    let selectedRegion = null;
+    let selectedPurpose = null;
+    let currentTable = null;
 
     // Auth
     function login() {
       const input = document.getElementById('password-input');
-      const error = document.getElementById('login-error');
-
       if (input.value === PASSWORD) {
         sessionStorage.setItem('yaa_auth', 'true');
-        showDashboard();
+        showRegionSelection();
       } else {
-        error.style.display = 'block';
+        document.getElementById('login-error').style.display = 'block';
         input.value = '';
       }
     }
 
     function logout() {
       sessionStorage.removeItem('yaa_auth');
+      sessionStorage.removeItem('yaa_region');
+      sessionStorage.removeItem('yaa_purpose');
+      selectedRegion = null;
+      selectedPurpose = null;
       document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('region-screen').style.display = 'none';
+      document.getElementById('purpose-screen').style.display = 'none';
       document.getElementById('dashboard').classList.remove('active');
     }
 
-    function showDashboard() {
+    function showRegionSelection() {
       document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('region-screen').style.display = 'flex';
+      document.getElementById('purpose-screen').style.display = 'none';
+      document.getElementById('dashboard').classList.remove('active');
+
+      // Reset selection
+      document.querySelectorAll('#region-screen .choice-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('btn-region-continue').disabled = true;
+    }
+
+    function selectRegion(region) {
+      selectedRegion = region;
+      document.querySelectorAll('#region-screen .choice-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelector(`[data-region="${region}"]`).classList.add('selected');
+      document.getElementById('btn-region-continue').disabled = false;
+    }
+
+    function confirmRegion() {
+      if (!selectedRegion) return;
+      sessionStorage.setItem('yaa_region', selectedRegion);
+      showPurposeSelection();
+    }
+
+    function showPurposeSelection() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('region-screen').style.display = 'none';
+      document.getElementById('purpose-screen').style.display = 'flex';
+      document.getElementById('dashboard').classList.remove('active');
+
+      // Update label
+      document.getElementById('purpose-region-label').textContent = selectedRegion.toUpperCase();
+
+      // Reset selection
+      document.querySelectorAll('#purpose-screen .choice-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('btn-purpose-continue').disabled = true;
+    }
+
+    function selectPurpose(purpose) {
+      selectedPurpose = purpose;
+      document.querySelectorAll('#purpose-screen .choice-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelector(`[data-purpose="${purpose}"]`).classList.add('selected');
+      document.getElementById('btn-purpose-continue').disabled = false;
+    }
+
+    function confirmPurpose() {
+      if (!selectedPurpose) return;
+      sessionStorage.setItem('yaa_purpose', selectedPurpose);
+      showDashboard();
+    }
+
+    function backToRegion() {
+      selectedPurpose = null;
+      sessionStorage.removeItem('yaa_purpose');
+      showRegionSelection();
+    }
+
+    function changeMode() {
+      selectedRegion = null;
+      selectedPurpose = null;
+      sessionStorage.removeItem('yaa_region');
+      sessionStorage.removeItem('yaa_purpose');
+      showRegionSelection();
+    }
+
+    function showDashboard() {
+      selectedRegion = sessionStorage.getItem('yaa_region');
+      selectedPurpose = sessionStorage.getItem('yaa_purpose');
+      currentTable = TABLES[selectedRegion][selectedPurpose];
+
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('region-screen').style.display = 'none';
+      document.getElementById('purpose-screen').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
+
+      // Update UI
+      document.getElementById('dash-region').textContent = selectedRegion.toUpperCase();
+      const modeEl = document.getElementById('dash-mode');
+      modeEl.textContent = selectedPurpose === 'sales' ? 'Продажи' : 'Маркетинг';
+      modeEl.className = 'mode-badge ' + (selectedPurpose === 'sales' ? 'mode-sales' : 'mode-marketing');
+      document.getElementById('dash-table-name').textContent = currentTable;
+
+      // Show/hide sections based on mode
+      document.getElementById('new-events-section').style.display = selectedPurpose === 'sales' ? 'block' : 'none';
+      document.getElementById('competitor-section').style.display = selectedPurpose === 'marketing' ? 'block' : 'none';
+
       fetchData();
     }
 
     function checkAuth() {
       if (sessionStorage.getItem('yaa_auth') === 'true') {
-        showDashboard();
+        if (sessionStorage.getItem('yaa_region') && sessionStorage.getItem('yaa_purpose')) {
+          showDashboard();
+        } else if (sessionStorage.getItem('yaa_region')) {
+          selectedRegion = sessionStorage.getItem('yaa_region');
+          showPurposeSelection();
+        } else {
+          showRegionSelection();
+        }
       }
     }
 
-    // Data
+    // Data - with pagination to get ALL records
     async function fetchData() {
       const statusEl = document.getElementById('status');
       statusEl.className = 'status loading';
-      statusEl.innerHTML = '⏳ Загрузка данных из Supabase...';
+      statusEl.innerHTML = '⏳ Загрузка данных из ' + currentTable + '...';
 
       try {
-        const startTime = Date.now();
+        allData = [];
+        const PAGE_SIZE = 1000;
+        let offset = 0;
+        let hasMore = true;
 
-        const response = await fetch(
-          `${SUPABASE_URL}/rest/v1/yaa_events?select=*&order=date_from.desc`,
-          {
-            headers: {
-              'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-              'Range': '0-9999'
+        while (hasMore) {
+          statusEl.innerHTML = `⏳ Загрузка... ${allData.length} записей`;
+
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/${currentTable}?select=*&order=date_from.desc`,
+            {
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Range': `${offset}-${offset + PAGE_SIZE - 1}`,
+                'Prefer': 'count=exact'
+              }
             }
+          );
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const batch = await response.json();
+          allData = allData.concat(batch);
+
+          // Check if there's more data
+          const contentRange = response.headers.get('Content-Range');
+          if (contentRange) {
+            const match = contentRange.match(/\/(\d+|\*)/);
+            const total = match ? parseInt(match[1]) : 0;
+            hasMore = allData.length < total;
+          } else {
+            hasMore = batch.length === PAGE_SIZE;
           }
-        );
 
-        const endTime = Date.now();
+          offset += PAGE_SIZE;
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+          // Safety limit
+          if (offset > 50000) {
+            console.warn('Safety limit reached');
+            break;
+          }
         }
 
-        allData = await response.json();
+        // For Sales mode, find new events (created in last 3 days)
+        if (selectedPurpose === 'sales') {
+          const threeDaysAgo = new Date();
+          threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+          const threeDaysAgoStr = threeDaysAgo.toISOString().substring(0, 10);
 
-        // Debug: check ID type
-        if (allData.length > 0) {
-          console.log('Sample event:', allData[0]);
-          console.log('ID type:', typeof allData[0].id, 'Value:', allData[0].id);
+          newEvents = allData.filter(e => {
+            if (!e.created_at) return false;
+            const created = e.created_at.substring(0, 10);
+            return created >= threeDaysAgoStr;
+          });
+          renderNewEvents();
         }
 
         statusEl.className = 'status success';
-        statusEl.innerHTML = `✅ Загружено ${allData.length} событий за ${endTime - startTime}ms`;
+        statusEl.innerHTML = `✅ Загружено ${allData.length} событий из ${currentTable}`;
 
         populateFilters();
         applyFilters();
@@ -649,18 +1218,42 @@
       }
     }
 
+    function renderNewEvents() {
+      const countEl = document.getElementById('new-events-count');
+      const listEl = document.getElementById('new-events-list');
+
+      countEl.textContent = newEvents.length;
+
+      if (newEvents.length === 0) {
+        listEl.innerHTML = '<p style="color:#666;font-size:13px;">Нет новых событий за последние 3 дня</p>';
+        return;
+      }
+
+      listEl.innerHTML = newEvents.slice(0, 10).map(e => `
+        <div class="new-event-card">
+          <div class="new-event-info">
+            <div class="new-event-title">${e.url ? `<a href="${e.url}" target="_blank">${escapeHtml(e.title)}</a>` : escapeHtml(e.title)}</div>
+            <div class="new-event-meta">${escapeHtml(e.venue) || '—'} • ${escapeHtml(e.city) || '—'}</div>
+          </div>
+          <div class="new-event-date">${e.date_from || '—'}</div>
+        </div>
+      `).join('') + (newEvents.length > 10 ? `<p style="color:#666;font-size:12px;text-align:center;margin-top:10px;">... и ещё ${newEvents.length - 10} новых</p>` : '');
+    }
+
     function populateFilters() {
-      // Cities
       const cities = [...new Set(allData.map(e => e.city).filter(Boolean))].sort();
-      const citySelect = document.getElementById('filter-city');
-      citySelect.innerHTML = '<option value="">Все города (' + cities.length + ')</option>' +
+      document.getElementById('filter-city').innerHTML = '<option value="">Все города (' + cities.length + ')</option>' +
         cities.map(c => `<option value="${c}">${c}</option>`).join('');
 
-      // Venues
       const venues = [...new Set(allData.map(e => e.venue).filter(Boolean))].sort();
-      const venueSelect = document.getElementById('filter-venue');
-      venueSelect.innerHTML = '<option value="">Все площадки (' + venues.length + ')</option>' +
+      document.getElementById('filter-venue').innerHTML = '<option value="">Все площадки (' + venues.length + ')</option>' +
         venues.map(v => `<option value="${v}">${v}</option>`).join('');
+
+      // Populate competitor city dropdown (for Marketing mode)
+      if (selectedPurpose === 'marketing') {
+        document.getElementById('competitor-city').innerHTML = '<option value="">Выберите город</option>' +
+          cities.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
     }
 
     function applyFilters() {
@@ -674,30 +1267,17 @@
       const commentsFilter = document.getElementById('filter-comments').value;
 
       filteredData = allData.filter(event => {
-        // Search
-        if (search && !event.title?.toLowerCase().includes(search) &&
-            !event.venue?.toLowerCase().includes(search)) {
-          return false;
-        }
-        // City
+        if (search && !event.title?.toLowerCase().includes(search) && !event.venue?.toLowerCase().includes(search)) return false;
         if (city && event.city !== city) return false;
-        // Venue
         if (venue && event.venue !== venue) return false;
-        // Date from
         if (dateFrom && event.date_from && event.date_from < dateFrom) return false;
-        // Date to
         if (dateTo && event.date_from && event.date_from > dateTo) return false;
-        // Created from
         if (createdFrom && event.created_at) {
-          const created = event.created_at.substring(0, 10);
-          if (created < createdFrom) return false;
+          if (event.created_at.substring(0, 10) < createdFrom) return false;
         }
-        // Created to
         if (createdTo && event.created_at) {
-          const created = event.created_at.substring(0, 10);
-          if (created > createdTo) return false;
+          if (event.created_at.substring(0, 10) > createdTo) return false;
         }
-        // Comments filter
         if (commentsFilter === 'with' && (!event.comments || !event.comments.trim())) return false;
         if (commentsFilter === 'without' && event.comments && event.comments.trim()) return false;
         return true;
@@ -708,47 +1288,51 @@
     }
 
     function clearFilters() {
-      document.getElementById('filter-search').value = '';
-      document.getElementById('filter-city').value = '';
-      document.getElementById('filter-venue').value = '';
-      document.getElementById('filter-date-from').value = '';
-      document.getElementById('filter-date-to').value = '';
-      document.getElementById('filter-created-from').value = '';
-      document.getElementById('filter-created-to').value = '';
-      document.getElementById('filter-comments').value = '';
+      ['filter-search', 'filter-city', 'filter-venue', 'filter-date-from', 'filter-date-to', 'filter-created-from', 'filter-created-to', 'filter-comments']
+        .forEach(id => document.getElementById(id).value = '');
       applyFilters();
+    }
+
+    function toggleFilters() {
+      const grid = document.getElementById('filters-grid');
+      const toggle = document.getElementById('filters-toggle');
+      if (grid.style.display === 'none') {
+        grid.style.display = 'grid';
+        toggle.textContent = '▼';
+      } else {
+        grid.style.display = 'none';
+        toggle.textContent = '▶';
+      }
+    }
+
+    // Get price - divide by 100 for RU (data in kopeks)
+    function getPrice(price) {
+      const rawPrice = parseFloat(price) || 0;
+      // RU prices are in kopeks, divide by 100
+      if (selectedRegion === 'ru') {
+        return Math.round(rawPrice / 100);
+      }
+      return rawPrice;
     }
 
     function renderStats() {
       const total = filteredData.length;
-      const avgPrice = total > 0
-        ? Math.round(filteredData.reduce((sum, e) => sum + (parseFloat(e.price) || 0), 0) / total)
-        : 0;
+      const avgPrice = total > 0 ? Math.round(filteredData.reduce((sum, e) => sum + getPrice(e.price), 0) / total) : 0;
       const cities = new Set(filteredData.map(e => e.city).filter(Boolean)).size;
       const venues = new Set(filteredData.map(e => e.venue).filter(Boolean)).size;
+      const currency = CURRENCY[selectedRegion];
 
       document.getElementById('stats').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-label">Событий</div>
-          <div class="stat-value">${total}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Ср. цена</div>
-          <div class="stat-value">${avgPrice.toLocaleString()} ₸</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Городов</div>
-          <div class="stat-value">${cities}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Площадок</div>
-          <div class="stat-value">${venues}</div>
-        </div>
+        <div class="stat-card"><div class="stat-label">Событий</div><div class="stat-value">${total}</div></div>
+        <div class="stat-card"><div class="stat-label">Ср. цена</div><div class="stat-value">${avgPrice.toLocaleString()} ${currency}</div></div>
+        <div class="stat-card"><div class="stat-label">Городов</div><div class="stat-value">${cities}</div></div>
+        <div class="stat-card"><div class="stat-label">Площадок</div><div class="stat-value">${venues}</div></div>
       `;
     }
 
     function renderTable() {
       const tableEl = document.getElementById('table-container');
+      const currency = CURRENCY[selectedRegion];
 
       if (filteredData.length === 0) {
         tableEl.innerHTML = '<p class="results-info">Нет событий по заданным фильтрам</p>';
@@ -770,7 +1354,7 @@
             <td class="comment-cell">
               <span class="comment-text ${commentClass}" data-id="${event.id}" data-url="${escapeAttr(event.url)}" data-title="${escapeAttr(event.title)}" data-comment="${escapeAttr(event.comments)}">${commentText}</span>
             </td>
-            <td class="price-cell">${(parseFloat(event.price) || 0).toLocaleString()} ₸</td>
+            <td class="price-cell">${getPrice(event.price).toLocaleString()} ${currency}</td>
           </tr>
         `;
       }).join('');
@@ -778,17 +1362,9 @@
       tableEl.innerHTML = `
         <div class="table-container">
           <table>
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>Площадка</th>
-                <th>Город</th>
-                <th>Дата</th>
-                <th>Добавлено</th>
-                <th>Комментарий</th>
-                <th style="text-align:right">Цена</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Название</th><th>Площадка</th><th>Город</th><th>Дата</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
+            </tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -796,68 +1372,94 @@
       `;
     }
 
-    function toggleRawData() {
-      const rawEl = document.getElementById('raw-data');
-      const jsonEl = document.getElementById('raw-json');
-
-      if (rawEl.style.display === 'none') {
-        rawEl.style.display = 'block';
-        jsonEl.textContent = allData.length > 0
-          ? JSON.stringify(allData.slice(0, 3), null, 2) + '\n\n... и ещё ' + (allData.length - 3) + ' записей'
-          : 'Данные не загружены';
-      } else {
-        rawEl.style.display = 'none';
-      }
-    }
-
-    // Helper to escape HTML
     function escapeHtml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // Helper to escape attributes
     function escapeAttr(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Competitor Search (Marketing mode)
+    function searchCompetitors() {
+      const targetDate = document.getElementById('competitor-date').value;
+      const targetCity = document.getElementById('competitor-city').value;
+
+      if (!targetDate) {
+        alert('Укажите дату события');
+        return;
+      }
+      if (!targetCity) {
+        alert('Выберите город');
+        return;
+      }
+
+      const currency = CURRENCY[selectedRegion];
+
+      // Find competitors: events in same city that overlap with target date
+      // Event matches if:
+      // 1. date_from equals target date, OR
+      // 2. target date falls between date_from and date_to (for shows with date ranges)
+      const competitors = allData.filter(e => {
+        if (e.city !== targetCity) return false;
+
+        const dateFrom = e.date_from;
+        const dateTo = e.date_to || e.date_from; // If no date_to, use date_from
+
+        if (!dateFrom) return false;
+
+        // Check if target date falls within event's date range
+        return targetDate >= dateFrom && targetDate <= dateTo;
+      });
+
+      // Display results
+      document.getElementById('competitor-date-display').textContent = targetDate;
+      document.getElementById('competitor-city-display').textContent = targetCity;
+      document.getElementById('competitor-count').textContent = competitors.length;
+
+      const listEl = document.getElementById('competitor-list');
+
+      if (competitors.length === 0) {
+        listEl.innerHTML = '<p style="color:#666;font-size:13px;padding:10px 0;">🎉 Отлично! Конкурентов не найдено на эту дату в этом городе.</p>';
+      } else {
+        listEl.innerHTML = competitors.map(e => {
+          const dateRange = e.date_to && e.date_to !== e.date_from
+            ? `${e.date_from} — ${e.date_to}`
+            : e.date_from;
+          return `
+            <div class="competitor-card">
+              <div class="competitor-info">
+                <div class="competitor-event-title">${e.url ? `<a href="${e.url}" target="_blank">${escapeHtml(e.title)}</a>` : escapeHtml(e.title)}</div>
+                <div class="competitor-meta">${escapeHtml(e.venue) || '—'}</div>
+              </div>
+              <div class="competitor-dates">
+                <div>${dateRange}</div>
+                <div class="competitor-price">${getPrice(e.price).toLocaleString()} ${currency}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('competitor-results').classList.add('active');
     }
 
     // Comment Modal
     let currentEditId = null;
     let currentEditUrl = null;
 
-    function openCommentModal(eventId, eventUrl, eventTitle, currentComment) {
-      currentEditId = eventId;
-      currentEditUrl = eventUrl;
-      document.getElementById('modal-event-title').textContent = eventTitle || 'Событие #' + eventId;
-      document.getElementById('comment-input').value = currentComment || '';
-      document.getElementById('comment-modal').classList.add('active');
-      document.getElementById('comment-input').focus();
-    }
-
-    // Event delegation for comment clicks
     document.addEventListener('click', function(e) {
       if (e.target.classList.contains('comment-text')) {
-        const id = e.target.dataset.id;
-        const url = e.target.dataset.url || '';
-        const title = e.target.dataset.title || '';
-        const comment = e.target.dataset.comment || '';
-        openCommentModal(id, url, title, comment);
+        currentEditId = e.target.dataset.id;
+        currentEditUrl = e.target.dataset.url || '';
+        document.getElementById('modal-event-title').textContent = e.target.dataset.title || 'Событие';
+        document.getElementById('comment-input').value = e.target.dataset.comment || '';
+        document.getElementById('comment-modal').classList.add('active');
+        document.getElementById('comment-input').focus();
       }
     });
-
-    // Toggle filters on mobile
-    function toggleFilters() {
-      const grid = document.getElementById('filters-grid');
-      const toggle = document.getElementById('filters-toggle');
-      if (grid.style.display === 'none') {
-        grid.style.display = 'grid';
-        toggle.textContent = '▼';
-      } else {
-        grid.style.display = 'none';
-        toggle.textContent = '▶';
-      }
-    }
 
     function closeCommentModal() {
       document.getElementById('comment-modal').classList.remove('active');
@@ -870,20 +1472,13 @@
 
       const comment = document.getElementById('comment-input').value;
       const saveBtn = document.getElementById('btn-save-comment');
-
       saveBtn.disabled = true;
       saveBtn.textContent = 'Сохранение...';
 
       try {
-        console.log('Saving comment for ID:', currentEditId, 'URL:', currentEditUrl, 'Comment:', comment);
-
-        // Use URL for matching since id might be a different type
-        const filterParam = currentEditUrl
-          ? `url=eq.${encodeURIComponent(currentEditUrl)}`
-          : `id=eq.${currentEditId}`;
-
+        const filterParam = currentEditUrl ? `url=eq.${encodeURIComponent(currentEditUrl)}` : `id=eq.${currentEditId}`;
         const response = await fetch(
-          `${SUPABASE_URL}/rest/v1/yaa_events?${filterParam}`,
+          `${SUPABASE_URL}/rest/v1/${currentTable}?${filterParam}`,
           {
             method: 'PATCH',
             headers: {
@@ -896,34 +1491,22 @@
           }
         );
 
-        console.log('Response status:', response.status);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        // Update local data
         const eventIndex = currentEditUrl
           ? allData.findIndex(e => e.url === currentEditUrl)
           : allData.findIndex(e => e.id === currentEditId);
-        if (eventIndex !== -1) {
-          allData[eventIndex].comments = comment;
-        }
+        if (eventIndex !== -1) allData[eventIndex].comments = comment;
 
         closeCommentModal();
         applyFilters();
 
-        // Show success feedback
-        const statusEl = document.getElementById('status');
-        statusEl.className = 'status success';
-        statusEl.innerHTML = `✅ Комментарий сохранён`;
+        document.getElementById('status').innerHTML = '✅ Комментарий сохранён';
         setTimeout(() => {
-          statusEl.innerHTML = `✅ Загружено ${allData.length} событий`;
+          document.getElementById('status').innerHTML = `✅ Загружено ${allData.length} событий из ${currentTable}`;
         }, 2000);
 
       } catch (error) {
-        console.error('Error saving comment:', error);
         alert('Ошибка сохранения: ' + error.message);
       } finally {
         saveBtn.disabled = false;
@@ -931,39 +1514,203 @@
       }
     }
 
+    // AI Search - natural language query parser
+    function setAiQuery(query) {
+      document.getElementById('ai-search-input').value = query;
+      aiSearch();
+    }
+
+    function aiSearch() {
+      const query = document.getElementById('ai-search-input').value.toLowerCase().trim();
+      if (!query) return;
+
+      // Parse natural language query
+      let results = [...allData];
+      let appliedFilters = [];
+
+      // Extract city names
+      const cities = [...new Set(allData.map(e => e.city).filter(Boolean))];
+      for (const city of cities) {
+        if (query.includes(city.toLowerCase())) {
+          results = results.filter(e => e.city && e.city.toLowerCase() === city.toLowerCase());
+          appliedFilters.push(`город: ${city}`);
+          break;
+        }
+      }
+
+      // Extract date patterns
+      const months = {
+        'январ': '01', 'феврал': '02', 'март': '03', 'апрел': '04',
+        'ма': '05', 'июн': '06', 'июл': '07', 'август': '08',
+        'сентябр': '09', 'октябр': '10', 'ноябр': '11', 'декабр': '12'
+      };
+
+      // Check for specific date like "15 марта"
+      const dateMatch = query.match(/(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
+      if (dateMatch) {
+        const day = dateMatch[1].padStart(2, '0');
+        const monthKey = Object.keys(months).find(m => dateMatch[2].toLowerCase().startsWith(m));
+        if (monthKey) {
+          const month = months[monthKey];
+          const year = new Date().getFullYear();
+          const targetDate = `${year}-${month}-${day}`;
+          results = results.filter(e => {
+            if (!e.date_from) return false;
+            const dateTo = e.date_to || e.date_from;
+            return targetDate >= e.date_from && targetDate <= dateTo;
+          });
+          appliedFilters.push(`дата: ${day}.${month}`);
+        }
+      }
+
+      // Check for "на следующей неделе" / "на этой неделе"
+      if (query.includes('следующ') && query.includes('недел')) {
+        const today = new Date();
+        const nextWeekStart = new Date(today);
+        nextWeekStart.setDate(today.getDate() + (7 - today.getDay() + 1));
+        const nextWeekEnd = new Date(nextWeekStart);
+        nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+        const startStr = nextWeekStart.toISOString().substring(0, 10);
+        const endStr = nextWeekEnd.toISOString().substring(0, 10);
+        results = results.filter(e => e.date_from && e.date_from >= startStr && e.date_from <= endStr);
+        appliedFilters.push(`следующая неделя`);
+      }
+
+      if (query.includes('этой недел') || query.includes('эта недел')) {
+        const today = new Date();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay() + 1);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        const startStr = weekStart.toISOString().substring(0, 10);
+        const endStr = weekEnd.toISOString().substring(0, 10);
+        results = results.filter(e => e.date_from && e.date_from >= startStr && e.date_from <= endStr);
+        appliedFilters.push(`эта неделя`);
+      }
+
+      // Check for "сегодня" / "завтра"
+      if (query.includes('сегодня')) {
+        const today = new Date().toISOString().substring(0, 10);
+        results = results.filter(e => e.date_from === today || (e.created_at && e.created_at.substring(0, 10) === today));
+        appliedFilters.push(`сегодня`);
+      }
+
+      if (query.includes('завтра')) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().substring(0, 10);
+        results = results.filter(e => e.date_from === tomorrowStr);
+        appliedFilters.push(`завтра`);
+      }
+
+      // Check for "новые" / "новых"
+      if (query.includes('нов')) {
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        const threeDaysAgoStr = threeDaysAgo.toISOString().substring(0, 10);
+        results = results.filter(e => e.created_at && e.created_at.substring(0, 10) >= threeDaysAgoStr);
+        appliedFilters.push(`новые за 3 дня`);
+      }
+
+      // Price filters
+      const priceMatch = query.match(/(дешевле|до|меньше|не дороже)\s*(\d+)/i);
+      if (priceMatch) {
+        const maxPrice = parseInt(priceMatch[2]);
+        results = results.filter(e => getPrice(e.price) <= maxPrice);
+        appliedFilters.push(`цена до ${maxPrice}`);
+      }
+
+      const priceMinMatch = query.match(/(дороже|от|больше|не дешевле)\s*(\d+)/i);
+      if (priceMinMatch) {
+        const minPrice = parseInt(priceMinMatch[2]);
+        results = results.filter(e => getPrice(e.price) >= minPrice);
+        appliedFilters.push(`цена от ${minPrice}`);
+      }
+
+      // Keywords search in title
+      const keywords = ['концерт', 'стендап', 'театр', 'выставк', 'фестиваль', 'шоу', 'спектакл', 'балет', 'опер', 'мюзикл', 'комеди', 'рок', 'джаз', 'классик'];
+      for (const kw of keywords) {
+        if (query.includes(kw)) {
+          results = results.filter(e => e.title && e.title.toLowerCase().includes(kw));
+          appliedFilters.push(`тип: ${kw}`);
+          break;
+        }
+      }
+
+      // Update filtered data and re-render
+      filteredData = results;
+      renderStats();
+      renderTable();
+
+      // Show AI search results info
+      const infoEl = document.getElementById('ai-search-info');
+      const resultsEl = document.getElementById('ai-search-results');
+      if (appliedFilters.length > 0) {
+        infoEl.innerHTML = `🔍 Найдено ${results.length} событий | Фильтры: ${appliedFilters.join(', ')}`;
+        resultsEl.classList.add('active');
+      } else {
+        infoEl.innerHTML = `⚠️ Не удалось распознать запрос. Попробуйте указать город, дату или тип события.`;
+        resultsEl.classList.add('active');
+      }
+    }
+
+    // Export to CSV
+    function exportCSV() {
+      if (filteredData.length === 0) {
+        alert('Нет данных для экспорта');
+        return;
+      }
+
+      const currency = CURRENCY[selectedRegion];
+      const headers = ['Название', 'Площадка', 'Город', 'Дата', 'Дата до', 'Добавлено', 'Цена (' + currency + ')', 'URL', 'Комментарий'];
+
+      const rows = filteredData.map(e => [
+        (e.title || '').replace(/"/g, '""'),
+        (e.venue || '').replace(/"/g, '""'),
+        (e.city || '').replace(/"/g, '""'),
+        e.date_from || '',
+        e.date_to || '',
+        e.created_at ? e.created_at.substring(0, 10) : '',
+        getPrice(e.price),
+        e.url || '',
+        (e.comments || '').replace(/"/g, '""')
+      ]);
+
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n');
+
+      // Add BOM for Excel UTF-8 compatibility
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `yaa_events_${selectedRegion}_${selectedPurpose}_${new Date().toISOString().substring(0, 10)}.csv`;
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
     // Init
     checkAuth();
 
-    // Initialize Flatpickr date pickers
-    const flatpickrConfig = {
+    // Flatpickr
+    const fpConfig = {
       dateFormat: 'Y-m-d',
       altInput: true,
       altFormat: 'd.m.Y',
       allowInput: true,
-      locale: {
-        firstDayOfWeek: 1,
-        weekdays: {
-          shorthand: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-          longhand: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
-        },
-        months: {
-          shorthand: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
-          longhand: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
-        }
-      },
-      onChange: function() {
-        applyFilters();
-      }
+      onChange: applyFilters
     };
-
-    // Load Flatpickr
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
-    script.onload = function() {
-      flatpickr('#filter-date-from', { ...flatpickrConfig, placeholder: 'Выберите дату' });
-      flatpickr('#filter-date-to', { ...flatpickrConfig, placeholder: 'Выберите дату' });
-      flatpickr('#filter-created-from', { ...flatpickrConfig, placeholder: 'Выберите дату' });
-      flatpickr('#filter-created-to', { ...flatpickrConfig, placeholder: 'Выберите дату' });
+    script.onload = () => {
+      flatpickr('#filter-date-from', fpConfig);
+      flatpickr('#filter-date-to', fpConfig);
+      flatpickr('#filter-created-from', fpConfig);
+      flatpickr('#filter-created-to', fpConfig);
     };
     document.head.appendChild(script);
   </script>
