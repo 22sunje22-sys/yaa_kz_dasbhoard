@@ -376,90 +376,6 @@
     .competitor-dates { color: #888; font-size: 8px; white-space: nowrap; text-align: right; font-family: -apple-system, sans-serif; }
     .competitor-price { color: #FF6B00; font-weight: bold; font-size: 9px; }
 
-    /* AI Search Section - 8-bit style */
-    .ai-search-section {
-      background: #111;
-      border: 3px solid #00CCFF;
-      border-radius: 0;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 4px 4px 0 #0088AA;
-    }
-    .ai-search-title {
-      color: #00CCFF;
-      font-size: 10px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      text-shadow: 1px 1px 0 #0088AA;
-    }
-    .ai-search-form {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .ai-search-input {
-      flex: 1;
-      min-width: 250px;
-      padding: 12px 15px;
-      border: 3px solid #333;
-      border-radius: 0;
-      background: #1a1a1a;
-      color: #fff;
-      font-size: 12px;
-      font-family: -apple-system, sans-serif;
-      outline: none;
-    }
-    .ai-search-input:focus {
-      border-color: #00CCFF;
-      box-shadow: 3px 3px 0 #0088AA;
-    }
-    .ai-search-input::placeholder {
-      color: #555;
-      font-style: italic;
-    }
-    .btn-ai-search {
-      background: #00CCFF;
-      color: #000;
-      border: 3px solid #0088AA;
-      padding: 12px 25px;
-      font-size: 9px;
-      font-family: 'Press Start 2P', monospace;
-      cursor: pointer;
-      box-shadow: 3px 3px 0 #006688;
-      text-transform: uppercase;
-    }
-    .btn-ai-search:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 #006688;
-    }
-    .ai-search-examples {
-      margin-top: 10px;
-      font-size: 8px;
-      color: #666;
-      font-family: -apple-system, sans-serif;
-    }
-    .ai-search-examples span {
-      color: #00CCFF;
-      cursor: pointer;
-      margin-right: 15px;
-    }
-    .ai-search-examples span:hover {
-      text-decoration: underline;
-    }
-    .ai-search-results {
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 2px solid #333;
-      display: none;
-    }
-    .ai-search-results.active {
-      display: block;
-    }
-    .ai-search-results-info {
-      color: #00CCFF;
-      font-size: 9px;
-      margin-bottom: 10px;
-    }
 
     /* New Events Section (for Sales mode) - 8-bit style */
     .new-events-section {
@@ -1071,26 +987,6 @@
 
     <div id="status" class="status loading">⏳ Подключение к Supabase...</div>
 
-    <!-- AI Search -->
-    <div id="ai-search-section" class="ai-search-section">
-      <div class="ai-search-title">🤖 УМНЫЙ ПОИСК — спроси как человека</div>
-      <div class="ai-search-form">
-        <input type="text" id="ai-search-input" class="ai-search-input" placeholder="Например: концерты в Москве 15 марта или стендап в Алматы дешевле 5000" onkeypress="if(event.key==='Enter')aiSearch()">
-        <button class="btn-ai-search" onclick="aiSearch()">🔍 НАЙТИ</button>
-      </div>
-      <div class="ai-search-examples">
-        Примеры:
-        <span onclick="setAiQuery('концерты в Москве')">концерты в Москве</span>
-        <span onclick="setAiQuery('с 10 марта по 25 марта')">с 10 по 25 марта</span>
-        <span onclick="setAiQuery('стендап дешевле 5000')">стендап дешевле 5000</span>
-        <span onclick="setAiQuery('в апреле')">в апреле</span>
-        <span onclick="setAiQuery('помощь')">помощь</span>
-      </div>
-      <div class="ai-search-results" id="ai-search-results">
-        <div class="ai-search-results-info" id="ai-search-info"></div>
-      </div>
-    </div>
-
     <!-- Competitor Search (only for Marketing mode) -->
     <div id="competitor-section" class="competitor-section" style="display:none;">
       <div class="competitor-title">🎯 Поиск конкурентов — укажите дату и город вашего события</div>
@@ -1104,6 +1000,13 @@
           <select id="competitor-city">
             <option value="">Выберите город</option>
           </select>
+        </div>
+        <div class="filter-group">
+          <label>Жанр</label>
+          <select id="competitor-genre" multiple onchange="updateCompetitorGenres()">
+            <option value="">Все жанры</option>
+          </select>
+          <div id="selected-competitor-genres" class="selected-items"></div>
         </div>
         <button class="btn btn-search" onclick="searchCompetitors()">🔍 Найти конкурентов</button>
       </div>
@@ -1522,6 +1425,7 @@
       if (selectedPurpose === 'marketing') {
         document.getElementById('competitor-city').innerHTML = '<option value="">Выберите город</option>' +
           cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
+        loadCompetitorGenres();
       }
 
       // Load genres
@@ -1979,6 +1883,80 @@
     }
 
     // Competitor Search (Marketing mode)
+
+    // ========== COMPETITOR GENRE FILTER ==========
+    let selectedCompetitorGenres = [];
+
+    function updateCompetitorGenres() {
+      const genreSelect = document.getElementById('competitor-genre');
+      const options = Array.from(genreSelect.selectedOptions);
+
+      selectedCompetitorGenres = options
+        .map(opt => opt.value)
+        .filter(val => val !== '');
+
+      updateCompetitorGenresDisplay();
+    }
+
+    function updateCompetitorGenresDisplay() {
+      const container = document.getElementById('selected-competitor-genres');
+      container.innerHTML = '';
+
+      selectedCompetitorGenres.forEach(genre => {
+        const tag = document.createElement('div');
+        tag.className = 'genre-tag';
+        tag.innerHTML = `
+          ${escapeHtml(genre)}
+          <span class="remove" data-genre="${escapeAttr(genre)}">×</span>
+        `;
+        container.appendChild(tag);
+      });
+
+      // Add click handlers for removal
+      document.querySelectorAll('#selected-competitor-genres .remove').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const genre = this.getAttribute('data-genre');
+          removeCompetitorGenre(genre);
+        });
+      });
+    }
+
+    function removeCompetitorGenre(genre) {
+      selectedCompetitorGenres = selectedCompetitorGenres.filter(g => g !== genre);
+
+      // Deselect in the select element
+      const select = document.getElementById('competitor-genre');
+      Array.from(select.options).forEach(opt => {
+        if (opt.value === genre) opt.selected = false;
+      });
+
+      updateCompetitorGenresDisplay();
+    }
+
+    function loadCompetitorGenres() {
+      try {
+        const genreCounts = {};
+        allData.forEach(e => {
+          if (e.genre && e.genre.trim()) {
+            const genre = e.genre.trim();
+            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+          }
+        });
+
+        const genres = Object.keys(genreCounts).sort((a, b) => {
+          const countDiff = genreCounts[b] - genreCounts[a];
+          return countDiff !== 0 ? countDiff : a.localeCompare(b);
+        });
+
+        const genreSelect = document.getElementById('competitor-genre');
+        genreSelect.innerHTML = '<option value="">Все жанры (' + genres.length + ')</option>' +
+          genres.map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)} (${genreCounts[g]})</option>`).join('');
+
+      } catch (error) {
+        console.error('Error loading competitor genres:', error);
+      }
+    }
+
     function searchCompetitors() {
       const targetDate = document.getElementById('competitor-date').value;
       const targetCity = document.getElementById('competitor-city').value;
@@ -2209,12 +2187,6 @@
       'юмор': ['comedy', 'humor', 'юмор', 'комеди', 'смех', 'stand-up', 'стендап']
     };
 
-    // Just fill the input, don't search
-    function setAiQuery(query) {
-      document.getElementById('ai-search-input').value = query;
-      // Don't auto-search, user will press Enter
-    }
-
     // ========== УЛУЧШЕННЫЙ ПОИСК ГОРОДОВ ==========
     // Используем word boundary проверку чтобы "мск" не матчилось внутри других слов
     function findCityInQuery(query, dbCities) {
@@ -2276,413 +2248,6 @@
       return null;
     }
 
-    function aiSearch() {
-      const query = document.getElementById('ai-search-input').value.trim();
-      if (!query) return;
-
-      const queryLower = query.toLowerCase();
-      const infoEl = document.getElementById('ai-search-info');
-      const resultsEl = document.getElementById('ai-search-results');
-
-      // ========== УЛУЧШЕННЫЙ DEBUG ==========
-
-      // Debug mode - show all cities in DB
-      if (queryLower === 'города' || queryLower === 'cities') {
-        const dbCities = [...new Set(allData.map(e => e.city).filter(Boolean))].sort();
-        const cityCounts = {};
-        allData.forEach(e => { if (e.city) cityCounts[e.city] = (cityCounts[e.city] || 0) + 1; });
-        const cityList = dbCities.map(c => `<span style="color:#00FF88">${c}</span> <span style="color:#666">(${cityCounts[c]})</span>`).join(', ');
-        infoEl.innerHTML = `
-          <div style="background:#1a1a1a;padding:15px;border:2px solid #00FF88;margin-bottom:10px;">
-            <b style="color:#00FF88;font-size:11px;">🏙️ ГОРОДА В БАЗЕ (${dbCities.length})</b><br><br>
-            <div style="line-height:2;">${cityList}</div>
-          </div>
-          <small style="color:#666;">Другие команды: поля, даты, статистика, помощь</small>
-        `;
-        resultsEl.classList.add('active');
-        return;
-      }
-
-      // Debug mode - show all fields of first record
-      if (queryLower === 'поля' || queryLower === 'fields' || queryLower === 'структура') {
-        if (allData.length > 0) {
-          const firstRecord = allData[0];
-          const fields = Object.entries(firstRecord).map(([k, v]) => {
-            const type = v === null ? 'null' : typeof v;
-            const preview = JSON.stringify(v)?.substring(0, 50) || 'null';
-            return `<tr><td style="color:#00CCFF;padding:5px 15px 5px 0;">${k}</td><td style="color:#888;">${type}</td><td style="color:#666;">${preview}${preview?.length >= 50 ? '...' : ''}</td></tr>`;
-          }).join('');
-          infoEl.innerHTML = `
-            <div style="background:#1a1a1a;padding:15px;border:2px solid #00CCFF;margin-bottom:10px;">
-              <b style="color:#00CCFF;font-size:11px;">📋 СТРУКТУРА ТАБЛИЦЫ: ${currentTable}</b><br>
-              <span style="color:#666;">Всего записей: ${allData.length}</span><br><br>
-              <table style="font-size:11px;"><tr style="color:#888;"><th style="text-align:left;padding-right:15px;">Поле</th><th style="text-align:left;padding-right:15px;">Тип</th><th style="text-align:left;">Пример</th></tr>${fields}</table>
-            </div>
-          `;
-        } else {
-          infoEl.innerHTML = `🔧 Нет данных в таблице`;
-        }
-        resultsEl.classList.add('active');
-        return;
-      }
-
-      // Debug mode - check dates specifically
-      if (queryLower === 'даты' || queryLower === 'dates') {
-        const withDates = allData.filter(e => e.date_from).length;
-        const withoutDates = allData.length - withDates;
-
-        // Find date range in data
-        const dates = allData.filter(e => e.date_from).map(e => e.date_from).sort();
-        const minDate = dates[0] || '—';
-        const maxDate = dates[dates.length - 1] || '—';
-
-        // Sample records
-        const sample = allData.slice(0, 8).map(e => `
-          <tr>
-            <td style="color:#00FF88;padding:3px 10px 3px 0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(e.title || '—').substring(0, 30)}</td>
-            <td style="color:#00CCFF;padding:3px 10px;">${e.date_from || '<span style="color:#ff6666">null</span>'}</td>
-            <td style="color:#888;">${e.date_to || '—'}</td>
-          </tr>
-        `).join('');
-
-        infoEl.innerHTML = `
-          <div style="background:#1a1a1a;padding:15px;border:2px solid #FF6B00;margin-bottom:10px;">
-            <b style="color:#FF6B00;font-size:11px;">📅 АНАЛИЗ ДАТ</b><br><br>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-              <div>С датой: <b style="color:#00FF88">${withDates}</b></div>
-              <div>Без даты: <b style="color:#ff6666">${withoutDates}</b></div>
-              <div>Мин. дата: <b style="color:#00CCFF">${minDate}</b></div>
-              <div>Макс. дата: <b style="color:#00CCFF">${maxDate}</b></div>
-            </div>
-            <b style="color:#888;">Примеры записей:</b><br>
-            <table style="font-size:10px;margin-top:5px;">
-              <tr style="color:#666;"><th style="text-align:left;">Название</th><th style="text-align:left;">date_from</th><th style="text-align:left;">date_to</th></tr>
-              ${sample}
-            </table>
-          </div>
-        `;
-        resultsEl.classList.add('active');
-        return;
-      }
-
-      // Debug mode - statistics
-      if (queryLower === 'статистика' || queryLower === 'stats' || queryLower === 'стат') {
-        const cities = [...new Set(allData.map(e => e.city).filter(Boolean))];
-        const venues = [...new Set(allData.map(e => e.venue).filter(Boolean))];
-        const withPrice = allData.filter(e => e.price && parseFloat(e.price) > 0).length;
-        const withUrl = allData.filter(e => e.url).length;
-        const withComments = allData.filter(e => e.comments && e.comments.trim()).length;
-        const avgPrice = allData.length > 0 ? Math.round(allData.reduce((s, e) => s + getPrice(e.price), 0) / allData.length) : 0;
-
-        // Top 5 cities
-        const cityCounts = {};
-        allData.forEach(e => { if (e.city) cityCounts[e.city] = (cityCounts[e.city] || 0) + 1; });
-        const topCities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-        infoEl.innerHTML = `
-          <div style="background:#1a1a1a;padding:15px;border:2px solid #00FF88;margin-bottom:10px;">
-            <b style="color:#00FF88;font-size:11px;">📊 СТАТИСТИКА: ${currentTable}</b><br><br>
-            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:15px;">
-              <div>Записей: <b style="color:#00FF88">${allData.length}</b></div>
-              <div>Городов: <b style="color:#00CCFF">${cities.length}</b></div>
-              <div>Площадок: <b style="color:#00CCFF">${venues.length}</b></div>
-              <div>С ценой: <b style="color:#00FF88">${withPrice}</b></div>
-              <div>Ср. цена: <b style="color:#FF6B00">${avgPrice.toLocaleString()} ${CURRENCY[selectedRegion]}</b></div>
-              <div>С URL: <b style="color:#00FF88">${withUrl}</b></div>
-              <div>С комментарием: <b style="color:#00CCFF">${withComments}</b></div>
-            </div>
-            <b style="color:#888;">ТОП-5 городов:</b><br>
-            ${topCities.map(([city, count], i) => `<span style="color:#${i === 0 ? '00FF88' : '888'}">${i + 1}. ${city} (${count})</span>`).join(' • ')}
-          </div>
-        `;
-        resultsEl.classList.add('active');
-        return;
-      }
-
-      // Help command
-      if (queryLower === 'помощь' || queryLower === 'help' || queryLower === '?') {
-        infoEl.innerHTML = `
-          <div style="background:#1a1a1a;padding:15px;border:2px solid #00CCFF;margin-bottom:10px;">
-            <b style="color:#00CCFF;font-size:11px;">❓ СПРАВКА ПО УМНОМУ ПОИСКУ</b><br><br>
-
-            <b style="color:#00FF88;">Поиск событий:</b><br>
-            • <span style="color:#888;">концерты в Москве</span> — по городу и типу<br>
-            • <span style="color:#888;">стендап 15 марта</span> — по дате<br>
-            • <span style="color:#888;">театр дешевле 5000</span> — по цене<br>
-            • <span style="color:#888;"><b>с 10 марта по 25 марта</b></span> — диапазон дат<br>
-            • <span style="color:#888;"><b>10-20 апреля</b></span> — диапазон дат (короткая форма)<br>
-            • <span style="color:#888;">в марте</span> — весь месяц<br>
-            • <span style="color:#888;">на следующей неделе</span> — период<br>
-            • <span style="color:#888;">новые события</span> — за неделю<br><br>
-
-            <b style="color:#FF6B00;">Debug команды:</b><br>
-            • <span style="color:#888;">города</span> — список городов в базе<br>
-            • <span style="color:#888;">поля</span> — структура таблицы<br>
-            • <span style="color:#888;">даты</span> — анализ дат<br>
-            • <span style="color:#888;">статистика</span> — общая статистика<br>
-          </div>
-        `;
-        resultsEl.classList.add('active');
-        return;
-      }
-
-      // Parse natural language query
-      let results = [...allData];
-      let appliedFilters = [];
-      let debugInfo = [];
-      let warnings = [];
-
-      // Get all cities from data
-      const dbCities = [...new Set(allData.map(e => e.city).filter(Boolean))];
-
-      // 1. Find city - СТРОГАЯ ФИЛЬТРАЦИЯ
-      const cityMatch = findCityInQuery(queryLower, dbCities);
-      if (cityMatch) {
-        if (cityMatch.notInDb) {
-          // Город распознан но его нет в базе
-          warnings.push(`⚠️ Город "${cityMatch.searchTerm}" распознан, но в базе нет записей с такими вариантами: ${cityMatch.allDbNames.join(', ')}`);
-          debugInfo.push(`Город "${cityMatch.searchTerm}" NOT IN DB! Искали: ${cityMatch.allDbNames.join(', ')}`);
-        } else {
-          const beforeCount = results.length;
-          // СТРОГАЯ фильтрация - точное совпадение города (case-insensitive)
-          const targetCity = cityMatch.dbValue.toLowerCase();
-          results = results.filter(e => e.city && e.city.toLowerCase() === targetCity);
-          appliedFilters.push(`🏙️ ${cityMatch.dbValue}`);
-          debugInfo.push(`Город "${cityMatch.searchTerm}" → "${cityMatch.dbValue}" (${beforeCount} → ${results.length})`);
-
-          // Дополнительная проверка - убедимся что все результаты реально из нужного города
-          const citiesInResults = [...new Set(results.map(e => e.city))];
-          if (citiesInResults.length > 1) {
-            warnings.push(`⚠️ BUG: В результатах несколько городов: ${citiesInResults.join(', ')}`);
-          } else if (citiesInResults.length === 1 && citiesInResults[0].toLowerCase() !== targetCity) {
-            warnings.push(`⚠️ BUG: Неверный город в результатах: ${citiesInResults[0]} вместо ${cityMatch.dbValue}`);
-          }
-        }
-      }
-
-      // 2. Find category/type
-      const categoryMatch = findCategoryInQuery(queryLower);
-      if (categoryMatch) {
-        const beforeCount = results.length;
-        results = results.filter(e => {
-          if (!e.title) return false;
-          const titleLower = e.title.toLowerCase();
-          return categoryMatch.keywords.some(kw => titleLower.includes(kw.toLowerCase()));
-        });
-        appliedFilters.push(`тип: ${categoryMatch.searchTerm}`);
-        debugInfo.push(`Категория "${categoryMatch.searchTerm}" → ключевые слова: ${categoryMatch.keywords.slice(0,3).join(', ')}... (${beforeCount} → ${results.length})`);
-      }
-
-      // 3. Extract date patterns
-      const months = {
-        'январ': '01', 'феврал': '02', 'март': '03', 'апрел': '04',
-        'ма': '05', 'июн': '06', 'июл': '07', 'август': '08',
-        'сентябр': '09', 'октябр': '10', 'ноябр': '11', 'декабр': '12'
-      };
-
-      // Helper to get month number from Russian word
-      function getMonthNum(monthWord) {
-        const word = monthWord.toLowerCase();
-        for (const [prefix, num] of Object.entries(months)) {
-          if (word.startsWith(prefix)) return num;
-        }
-        return null;
-      }
-
-      // Helper to format date string
-      function formatDate(day, month, year) {
-        return `${year}-${month}-${day.toString().padStart(2, '0')}`;
-      }
-
-      const currentYear = new Date().getFullYear();
-      let dateFilterApplied = false;
-
-      // ========== DATE RANGE: "с 10 марта по 30 марта" or "с 10 по 30 марта" ==========
-      const rangeMatch1 = queryLower.match(/с\s*(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)?\s*по\s*(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
-      if (rangeMatch1 && !dateFilterApplied) {
-        const dayStart = rangeMatch1[1];
-        const dayEnd = rangeMatch1[3];
-        const monthEnd = getMonthNum(rangeMatch1[4]);
-        const monthStart = rangeMatch1[2] ? getMonthNum(rangeMatch1[2]) : monthEnd; // если месяц не указан, берем конечный
-
-        if (monthStart && monthEnd) {
-          const startDate = formatDate(dayStart, monthStart, currentYear);
-          const endDate = formatDate(dayEnd, monthEnd, currentYear);
-          const beforeCount = results.length;
-          results = results.filter(e => {
-            if (!e.date_from) return false;
-            return e.date_from >= startDate && e.date_from <= endDate;
-          });
-          appliedFilters.push(`📅 ${dayStart}.${monthStart} — ${dayEnd}.${monthEnd}`);
-          debugInfo.push(`Диапазон дат: ${startDate} — ${endDate} (${beforeCount} → ${results.length})`);
-          dateFilterApplied = true;
-        }
-      }
-
-      // ========== DATE RANGE: "10-30 марта" or "10-30 апреля" ==========
-      const rangeMatch2 = queryLower.match(/(\d{1,2})\s*[-–]\s*(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
-      if (rangeMatch2 && !dateFilterApplied) {
-        const dayStart = rangeMatch2[1];
-        const dayEnd = rangeMatch2[2];
-        const month = getMonthNum(rangeMatch2[3]);
-
-        if (month) {
-          const startDate = formatDate(dayStart, month, currentYear);
-          const endDate = formatDate(dayEnd, month, currentYear);
-          const beforeCount = results.length;
-          results = results.filter(e => {
-            if (!e.date_from) return false;
-            return e.date_from >= startDate && e.date_from <= endDate;
-          });
-          appliedFilters.push(`📅 ${dayStart}-${dayEnd}.${month}`);
-          debugInfo.push(`Диапазон: ${startDate} — ${endDate} (${beforeCount} → ${results.length})`);
-          dateFilterApplied = true;
-        }
-      }
-
-      // ========== WHOLE MONTH: "в марте", "в апреле" ==========
-      const monthOnlyMatch = queryLower.match(/в\s+(январ[еёя]?|феврал[еёя]?|март[еа]?|апрел[еёя]?|ма[ейя]|июн[еёя]?|июл[еёя]?|август[еа]?|сентябр[еёя]?|октябр[еёя]?|ноябр[еёя]?|декабр[еёя]?)/i);
-      if (monthOnlyMatch && !dateFilterApplied) {
-        const month = getMonthNum(monthOnlyMatch[1]);
-        if (month) {
-          const startDate = `${currentYear}-${month}-01`;
-          // Get last day of month
-          const lastDay = new Date(currentYear, parseInt(month), 0).getDate();
-          const endDate = `${currentYear}-${month}-${lastDay}`;
-          const beforeCount = results.length;
-          results = results.filter(e => {
-            if (!e.date_from) return false;
-            return e.date_from >= startDate && e.date_from <= endDate;
-          });
-          appliedFilters.push(`📅 весь ${monthOnlyMatch[1]}`);
-          debugInfo.push(`Месяц: ${startDate} — ${endDate} (${beforeCount} → ${results.length})`);
-          dateFilterApplied = true;
-        }
-      }
-
-      // ========== SINGLE DATE: "15 марта" ==========
-      const dateMatch = queryLower.match(/(\d{1,2})\s*(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/i);
-      if (dateMatch && !dateFilterApplied) {
-        const day = dateMatch[1].padStart(2, '0');
-        const month = getMonthNum(dateMatch[2]);
-        if (month) {
-          const targetDate = `${currentYear}-${month}-${day}`;
-          const beforeCount = results.length;
-          results = results.filter(e => {
-            if (!e.date_from) return false;
-            const dateTo = e.date_to || e.date_from;
-            return targetDate >= e.date_from && targetDate <= dateTo;
-          });
-          appliedFilters.push(`📅 ${day}.${month}`);
-          debugInfo.push(`Точная дата: ${targetDate} (${beforeCount} → ${results.length})`);
-          dateFilterApplied = true;
-        }
-      }
-
-      // Check for "на следующей неделе" / "на этой неделе"
-      if (queryLower.includes('следующ') && queryLower.includes('недел')) {
-        const today = new Date();
-        const nextWeekStart = new Date(today);
-        nextWeekStart.setDate(today.getDate() + (7 - today.getDay() + 1));
-        const nextWeekEnd = new Date(nextWeekStart);
-        nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
-        const startStr = nextWeekStart.toISOString().substring(0, 10);
-        const endStr = nextWeekEnd.toISOString().substring(0, 10);
-        results = results.filter(e => e.date_from && e.date_from >= startStr && e.date_from <= endStr);
-        appliedFilters.push(`следующая неделя`);
-      }
-
-      if (queryLower.includes('этой недел') || queryLower.includes('эта недел')) {
-        const today = new Date();
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay() + 1);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        const startStr = weekStart.toISOString().substring(0, 10);
-        const endStr = weekEnd.toISOString().substring(0, 10);
-        results = results.filter(e => e.date_from && e.date_from >= startStr && e.date_from <= endStr);
-        appliedFilters.push(`эта неделя`);
-      }
-
-      // Check for "сегодня" / "завтра"
-      if (queryLower.includes('сегодня')) {
-        const today = new Date().toISOString().substring(0, 10);
-        results = results.filter(e => e.date_from === today || (e.created_at && e.created_at.substring(0, 10) === today));
-        appliedFilters.push(`сегодня`);
-      }
-
-      if (queryLower.includes('завтра')) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().substring(0, 10);
-        results = results.filter(e => e.date_from === tomorrowStr);
-        appliedFilters.push(`завтра`);
-      }
-
-      // Check for "новые" / "новых"
-      if (queryLower.includes('нов')) {
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        const weekAgoStr = weekAgo.toISOString().substring(0, 10);
-        results = results.filter(e => e.created_at && e.created_at.substring(0, 10) >= weekAgoStr);
-        appliedFilters.push(`новые за неделю`);
-      }
-
-      // 4. Price filters
-      const priceMatch = queryLower.match(/(дешевле|до|меньше|не дороже)\s*(\d+)/i);
-      if (priceMatch) {
-        const maxPrice = parseInt(priceMatch[2]);
-        results = results.filter(e => getPrice(e.price) <= maxPrice);
-        appliedFilters.push(`цена до ${maxPrice}`);
-      }
-
-      const priceMinMatch = queryLower.match(/(дороже|от|больше|не дешевле)\s*(\d+)/i);
-      if (priceMinMatch) {
-        const minPrice = parseInt(priceMinMatch[2]);
-        results = results.filter(e => getPrice(e.price) >= minPrice);
-        appliedFilters.push(`цена от ${minPrice}`);
-      }
-
-      // Update filtered data and re-render
-      filteredData = results;
-      renderStats();
-      renderTable();
-
-      // Show AI search results info
-      if (appliedFilters.length > 0 || warnings.length > 0) {
-        let html = `🔍 Найдено <b style="color:#00FF88">${results.length}</b> событий`;
-        if (appliedFilters.length > 0) {
-          html += ` | Фильтры: ${appliedFilters.join(', ')}`;
-        }
-
-        // Show warnings
-        if (warnings.length > 0) {
-          html += `<br><div style="color:#FF6B00;margin-top:8px;">${warnings.join('<br>')}</div>`;
-        }
-
-        // Show debug info
-        if (debugInfo.length > 0) {
-          html += `<br><br><small style="color:#666;">🔧 ${debugInfo.join(' | ')}</small>`;
-        }
-
-        // Показываем города в выдаче для проверки
-        if (results.length > 0 && results.length <= 500) {
-          const citiesInResults = [...new Set(results.map(e => e.city).filter(Boolean))];
-          if (citiesInResults.length > 0) {
-            html += `<br><small style="color:#888;">Города в выдаче: ${citiesInResults.join(', ')}</small>`;
-          }
-        }
-
-        infoEl.innerHTML = html;
-        resultsEl.classList.add('active');
-      } else {
-        // Show what we tried to match
-        infoEl.innerHTML = `⚠️ Не удалось распознать запрос "${escapeHtml(query)}". <br>Попробуйте: "концерты в Москве", "стендап дешевле 3000", "с 10 по 25 марта"<br><br><small style="color:#888;">Напишите "<b>помощь</b>" для справки или "<b>города</b>" для списка городов</small>`;
-        resultsEl.classList.add('active');
-      }
-    }
-
-    // Export to CSV
     function exportCSV() {
       if (filteredData.length === 0) {
         alert('Нет данных для экспорта');
