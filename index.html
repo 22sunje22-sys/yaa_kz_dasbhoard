@@ -776,6 +776,67 @@
       .login-box, .selection-box { padding: 25px; }
       h1 { font-size: 10px; }
     }
+
+    /* Multi-select genre filter styles */
+    #filter-genre {
+      width: 100%;
+      padding: 8px;
+      background: #1a1a1a;
+      color: #fff;
+      border: 2px solid #00ff00;
+      cursor: pointer;
+      max-height: 150px;
+      overflow-y: auto;
+      font-family: inherit;
+    }
+
+    #filter-genre option {
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    #filter-genre option:hover {
+      background: #00ff0033;
+    }
+
+    #filter-genre option:checked {
+      background: #00ff00;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .selected-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+      min-height: 24px;
+    }
+
+    .genre-tag {
+      background: #00ff00;
+      color: #000;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+      box-shadow: 2px 2px 0 #00AA55;
+    }
+
+    .genre-tag .remove {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .genre-tag .remove:hover {
+      color: #ff0000;
+    }
+
   </style>
 </head>
 <body>
@@ -1086,6 +1147,13 @@
           <select id="filter-venue" onchange="applyFilters()" onfocus="loadVenues()">
             <option value="">Все площадки</option>
           </select>
+        </div>
+        <div class="filter-group">
+          <label>Жанр</label>
+          <select id="filter-genre" multiple onchange="updateSelectedGenres()">
+            <option value="">Все жанры</option>
+          </select>
+          <div id="selected-genres" class="selected-items"></div>
         </div>
         <div class="filter-group">
           <label>Дата события (от)</label>
@@ -1455,6 +1523,9 @@
         document.getElementById('competitor-city').innerHTML = '<option value="">Выберите город</option>' +
           cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
       }
+
+      // Load genres
+      loadGenres();
     }
 
     // Ленивая загрузка площадок
@@ -1475,6 +1546,87 @@
       if (venues.length > 200) {
         venueSelect.innerHTML += `<option disabled>... и ещё ${venues.length - 200} площадок</option>`;
       }
+    }
+
+
+    // ========== GENRE FILTER FUNCTIONS ==========
+    let selectedGenres = [];
+    let genresLoaded = false;
+
+    async function loadGenres() {
+      if (genresLoaded) return;
+      genresLoaded = true;
+
+      try {
+        const genreCounts = {};
+        allData.forEach(e => {
+          if (e.genre && e.genre.trim()) {
+            const genre = e.genre.trim();
+            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+          }
+        });
+
+        // Sort genres by count (descending), then alphabetically
+        const genres = Object.keys(genreCounts).sort((a, b) => {
+          const countDiff = genreCounts[b] - genreCounts[a];
+          return countDiff !== 0 ? countDiff : a.localeCompare(b);
+        });
+
+        const genreSelect = document.getElementById('filter-genre');
+        genreSelect.innerHTML = '<option value="">Все жанры (' + genres.length + ')</option>' +
+          genres.map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)} (${genreCounts[g]})</option>`).join('');
+
+      } catch (error) {
+        console.error('Error loading genres:', error);
+      }
+    }
+
+    function updateSelectedGenres() {
+      const genreSelect = document.getElementById('filter-genre');
+      const options = Array.from(genreSelect.selectedOptions);
+
+      selectedGenres = options
+        .map(opt => opt.value)
+        .filter(val => val !== '');
+
+      updateSelectedGenresDisplay();
+      applyFilters();
+    }
+
+    function updateSelectedGenresDisplay() {
+      const container = document.getElementById('selected-genres');
+      container.innerHTML = '';
+
+      selectedGenres.forEach(genre => {
+        const tag = document.createElement('div');
+        tag.className = 'genre-tag';
+        tag.innerHTML = `
+          ${escapeHtml(genre)}
+          <span class="remove" data-genre="${escapeAttr(genre)}">×</span>
+        `;
+        container.appendChild(tag);
+      });
+
+      // Add click handlers for removal
+      document.querySelectorAll('.genre-tag .remove').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const genre = this.getAttribute('data-genre');
+          removeGenre(genre);
+        });
+      });
+    }
+
+    function removeGenre(genre) {
+      selectedGenres = selectedGenres.filter(g => g !== genre);
+
+      // Deselect in the select element
+      const select = document.getElementById('filter-genre');
+      Array.from(select.options).forEach(opt => {
+        if (opt.value === genre) opt.selected = false;
+      });
+
+      updateSelectedGenresDisplay();
+      applyFilters();
     }
 
     function applyFilters() {
@@ -1515,6 +1667,12 @@
         }
         if (commentsFilter === 'with' && (!event.comments || !event.comments.trim())) return false;
         if (commentsFilter === 'without' && event.comments && event.comments.trim()) return false;
+
+        // Genre filter (multi-select)
+        if (selectedGenres.length > 0) {
+          if (!event.genre || !selectedGenres.includes(event.genre.trim())) return false;
+        }
+
         return true;
       });
 
@@ -1523,8 +1681,11 @@
     }
 
     function clearFilters() {
-      ['filter-search', 'filter-city', 'filter-venue', 'filter-date-from', 'filter-date-to', 'filter-created-from', 'filter-created-to', 'filter-comments']
+      ['filter-search', 'filter-city', 'filter-venue', 'filter-genre', 'filter-date-from', 'filter-date-to', 'filter-created-from', 'filter-created-to', 'filter-comments']
         .forEach(id => document.getElementById(id).value = '');
+      selectedGenres = [];
+      updateSelectedGenresDisplay();
+      genresLoaded = false;
       applyFilters();
     }
 
