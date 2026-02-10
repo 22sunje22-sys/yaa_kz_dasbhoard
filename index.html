@@ -299,83 +299,6 @@
     .success { background: rgba(0,255,136,0.1); border-color: #00FF88; }
     .error { background: rgba(255,0,0,0.1); border-color: #ff4444; color: #ff6666; }
 
-    /* Competitor Search (for Marketing mode) - 8-bit style */
-    .competitor-section {
-      background: #111;
-      border: 3px solid #FF6B00;
-      border-radius: 0;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 4px 4px 0 #CC5500;
-    }
-    .competitor-title {
-      color: #FF6B00;
-      font-size: 10px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      text-shadow: 1px 1px 0 #CC5500;
-    }
-    .competitor-form {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-    }
-    .competitor-form .filter-group { flex: 1; min-width: 150px; }
-    .competitor-form .filter-group label { color: #FF6B00; }
-    .competitor-form .btn-search {
-      background: #FF6B00;
-      color: #fff;
-      padding: 10px 25px;
-      white-space: nowrap;
-      border: 3px solid #CC5500;
-      box-shadow: 3px 3px 0 #993300;
-    }
-    .competitor-form .btn-search:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 #993300;
-    }
-    .competitor-results {
-      margin-top: 20px;
-      display: none;
-    }
-    .competitor-results.active { display: block; }
-    .competitor-results-title {
-      color: #FF6B00;
-      font-size: 9px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .competitor-results-title .count {
-      background: #FF6B00;
-      color: #fff;
-      padding: 2px 8px;
-      border-radius: 0;
-      font-size: 9px;
-      border: 2px solid #CC5500;
-    }
-    .competitor-card {
-      background: #1a1a1a;
-      border: 2px solid #333;
-      border-radius: 0;
-      padding: 12px 15px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-    }
-    .competitor-card:hover { border-color: #FF6B00; box-shadow: 2px 2px 0 #CC5500; }
-    .competitor-info { flex: 1; }
-    .competitor-event-title { color: #FF6B00; font-weight: bold; font-size: 9px; }
-    .competitor-event-title a { color: #FF6B00; text-decoration: none; }
-    .competitor-event-title a:hover { text-decoration: underline; }
-    .competitor-meta { color: #666; font-size: 8px; margin-top: 4px; font-family: -apple-system, sans-serif; }
-    .competitor-dates { color: #888; font-size: 8px; white-space: nowrap; text-align: right; font-family: -apple-system, sans-serif; }
-    .competitor-price { color: #FF6B00; font-weight: bold; font-size: 9px; }
-
 
     /* New Events Section (for Sales mode) - 8-bit style */
     .new-events-section {
@@ -1334,7 +1257,7 @@
 
       // Show/hide sections based on mode
       document.getElementById('new-events-section').style.display = selectedPurpose === 'sales' ? 'block' : 'none';
-      document.getElementById('competitor-section').style.display = selectedPurpose === 'marketing' ? 'block' : 'none';
+
 
       // Сбрасываем UI
       document.getElementById('stats').innerHTML = '';
@@ -1954,15 +1877,6 @@
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-
-    // Competitor Search (Marketing mode)
-
-    // ========== COMPETITOR GENRE FILTER ==========
-
-
-
-
-
 
     // Comment Modal
     let currentEditId = null;
