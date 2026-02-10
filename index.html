@@ -1610,13 +1610,8 @@
     }
 
     function updateSelectedGenres() {
-      const genreSelect = document.getElementById('filter-genre');
-      const options = Array.from(genreSelect.selectedOptions);
-
-      selectedGenres = options
-        .map(opt => opt.value)
-        .filter(val => val !== '');
-
+      // This function is kept for backwards compatibility but not used
+      // Selection is now handled by toggleGenreSelection()
       updateSelectedGenresDisplay();
       applyFilters();
     }
@@ -1646,14 +1641,8 @@
 
     function removeGenre(genre) {
       selectedGenres = selectedGenres.filter(g => g !== genre);
-
-      // Deselect in the select element
-      const select = document.getElementById('filter-genre');
-      Array.from(select.options).forEach(opt => {
-        if (opt.value === genre) opt.selected = false;
-      });
-
       updateSelectedGenresDisplay();
+      updateGenreDropdownText();
       applyFilters();
     }
 
@@ -2012,13 +2001,8 @@
     let selectedCompetitorGenres = [];
 
     function updateCompetitorGenres() {
-      const genreSelect = document.getElementById('competitor-genre');
-      const options = Array.from(genreSelect.selectedOptions);
-
-      selectedCompetitorGenres = options
-        .map(opt => opt.value)
-        .filter(val => val !== '');
-
+      // This function is kept for backwards compatibility but not used
+      // Selection is now handled by toggleCompetitorGenreSelection()
       updateCompetitorGenresDisplay();
     }
 
@@ -2047,14 +2031,8 @@
 
     function removeCompetitorGenre(genre) {
       selectedCompetitorGenres = selectedCompetitorGenres.filter(g => g !== genre);
-
-      // Deselect in the select element
-      const select = document.getElementById('competitor-genre');
-      Array.from(select.options).forEach(opt => {
-        if (opt.value === genre) opt.selected = false;
-      });
-
       updateCompetitorGenresDisplay();
+      updateCompetitorGenreDropdownText();
     }
 
     function loadCompetitorGenres() {
