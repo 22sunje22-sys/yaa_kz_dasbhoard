@@ -1596,11 +1596,20 @@
         const optionsList = document.getElementById('genre-options-list');
         if (optionsList) {
           optionsList.innerHTML = genres.map(g => `
-            <div class="dropdown-option" data-genre="${escapeAttr(g)}" onclick="toggleGenreSelection('${escapeAttr(g)}')">
+            <div class="dropdown-option" data-genre="${escapeAttr(g)}">
               <span class="dropdown-option-checkbox"></span>
               <span>${escapeHtml(g)} (${genreCounts[g]})</span>
             </div>
           `).join('');
+
+          // Add click handlers using event delegation
+          optionsList.querySelectorAll('.dropdown-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+              const genre = this.getAttribute('data-genre');
+              toggleGenreSelection(genre);
+            });
+          });
+
           updateGenreDropdownText();
         }
 
@@ -2053,11 +2062,20 @@
         const optionsList = document.getElementById('competitor-genre-options-list');
         if (optionsList) {
           optionsList.innerHTML = genres.map(g => `
-            <div class="dropdown-option" data-genre="${escapeAttr(g)}" onclick="toggleCompetitorGenreSelection('${escapeAttr(g)}')">
+            <div class="dropdown-option" data-genre="${escapeAttr(g)}">
               <span class="dropdown-option-checkbox"></span>
               <span>${escapeHtml(g)} (${genreCounts[g]})</span>
             </div>
           `).join('');
+
+          // Add click handlers using event delegation
+          optionsList.querySelectorAll('.dropdown-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+              const genre = this.getAttribute('data-genre');
+              toggleCompetitorGenreSelection(genre);
+            });
+          });
+
           updateCompetitorGenreDropdownText();
         }
 
