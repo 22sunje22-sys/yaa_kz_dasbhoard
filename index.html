@@ -693,32 +693,116 @@
       h1 { font-size: 10px; }
     }
 
-    /* Multi-select genre filter styles */
-    #filter-genre, #competitor-genre {
+    /* Custom dropdown styles */
+    .custom-dropdown-wrapper {
+      position: relative;
       width: 100%;
-      padding: 8px;
+    }
+
+    .custom-dropdown-header {
+      padding: 8px 30px 8px 8px;
       background: #1a1a1a;
       color: #fff;
       border: 2px solid #00ff00;
       cursor: pointer;
-      height: auto;
-      min-height: 38px;
-      max-height: 38px;
-      overflow: hidden;
-      font-family: inherit;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       font-size: 11px;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ff00' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      padding-right: 30px;
+      user-select: none;
     }
 
-    #filter-genre:focus, #competitor-genre:focus {
-      max-height: 200px;
+    .custom-dropdown-header:hover {
+      background: #252525;
+    }
+
+    .dropdown-arrow {
+      position: absolute;
+      right: 8px;
+      color: #00ff00;
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+
+    .custom-dropdown-header.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+
+    .custom-dropdown-content {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      border-top: none;
+      max-height: 300px;
       overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .dropdown-search {
+      width: calc(100% - 16px);
+      padding: 8px;
+      margin: 8px;
+      background: #252525;
+      color: #fff;
+      border: 1px solid #00ff00;
+      font-size: 11px;
+      outline: none;
+    }
+
+    .dropdown-search::placeholder {
+      color: #888;
+    }
+
+    .dropdown-options {
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .dropdown-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .dropdown-option:hover {
+      background: #252525;
+    }
+
+    .dropdown-option.selected {
+      background: #1a3a1a;
+    }
+
+    .dropdown-option-checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #00ff00;
+      background: #1a1a1a;
+      display: inline-block;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .dropdown-option.selected .dropdown-option-checkbox {
+      background: #00ff00;
+    }
+
+    .dropdown-option.selected .dropdown-option-checkbox::after {
+      content: '✓';
+      position: absolute;
+      top: -2px;
+      left: 2px;
+      color: #000;
+      font-size: 12px;
+      font-weight: bold;
     }
 
     #filter-genre option {
@@ -1022,9 +1106,16 @@
         </div>
         <div class="filter-group">
           <label>Жанр</label>
-          <select id="competitor-genre" multiple onchange="updateCompetitorGenres()">
-            <option value="">Все жанры</option>
-          </select>
+          <div class="custom-dropdown-wrapper">
+            <div class="custom-dropdown-header" onclick="toggleCompetitorGenreDropdown()">
+              <span id="competitor-genre-dropdown-text">Все жанры</span>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+            <div id="competitor-genre-dropdown-content" class="custom-dropdown-content" style="display:none;">
+              <input type="text" id="competitor-genre-search" class="dropdown-search" placeholder="Поиск жанра..." onkeyup="filterCompetitorGenreOptions()">
+              <div id="competitor-genre-options-list" class="dropdown-options"></div>
+            </div>
+          </div>
           <div id="selected-competitor-genres" class="selected-items"></div>
         </div>
         <button class="btn btn-search" onclick="searchCompetitors()">🔍 Найти конкурентов</button>
@@ -1072,9 +1163,16 @@
         </div>
         <div class="filter-group">
           <label>Жанр</label>
-          <select id="filter-genre" multiple onchange="updateSelectedGenres()">
-            <option value="">Все жанры</option>
-          </select>
+          <div class="custom-dropdown-wrapper">
+            <div class="custom-dropdown-header" onclick="toggleGenreDropdown()">
+              <span id="genre-dropdown-text">Все жанры</span>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+            <div id="genre-dropdown-content" class="custom-dropdown-content" style="display:none;">
+              <input type="text" id="genre-search" class="dropdown-search" placeholder="Поиск жанра..." onkeyup="filterGenreOptions()">
+              <div id="genre-options-list" class="dropdown-options"></div>
+            </div>
+          </div>
           <div id="selected-genres" class="selected-items"></div>
         </div>
         <div class="filter-group">
