@@ -1086,49 +1086,6 @@
 
     <div id="status" class="status loading">⏳ Подключение к Supabase...</div>
 
-    <!-- Competitor Search (only for Marketing mode) -->
-    <div id="competitor-section" class="competitor-section" style="display:none;">
-      <div class="competitor-title">🎯 Поиск конкурентов — укажите дату и город вашего события</div>
-      <div class="competitor-form">
-        <div class="filter-group">
-          <label>Дата события (от)</label>
-          <input type="date" id="competitor-date-from">
-        </div>
-        <div class="filter-group">
-          <label>Дата события (до)</label>
-          <input type="date" id="competitor-date-to">
-        </div>
-        <div class="filter-group">
-          <label>Город</label>
-          <select id="competitor-city">
-            <option value="">Выберите город</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Жанр</label>
-          <div class="custom-dropdown-wrapper">
-            <div class="custom-dropdown-header" onclick="toggleCompetitorGenreDropdown()">
-              <span id="competitor-genre-dropdown-text">Все жанры</span>
-              <span class="dropdown-arrow">▼</span>
-            </div>
-            <div id="competitor-genre-dropdown-content" class="custom-dropdown-content" style="display:none;">
-              <input type="text" id="competitor-genre-search" class="dropdown-search" placeholder="Поиск жанра..." onkeyup="filterCompetitorGenreOptions()">
-              <div id="competitor-genre-options-list" class="dropdown-options"></div>
-            </div>
-          </div>
-          <div id="selected-competitor-genres" class="selected-items"></div>
-        </div>
-        <button class="btn btn-search" onclick="searchCompetitors()">🔍 Найти конкурентов</button>
-      </div>
-      <div class="competitor-results" id="competitor-results">
-        <div class="competitor-results-title">
-          Конкуренты на <span id="competitor-date-display"></span> в городе <span id="competitor-city-display"></span>
-          <span class="count" id="competitor-count">0</span>
-        </div>
-        <div id="competitor-list"></div>
-      </div>
-    </div>
-
     <!-- New Events Section (only for Sales mode) -->
     <div id="new-events-section" class="new-events-section" style="display:none;">
       <div class="new-events-title">
@@ -1538,12 +1495,6 @@
       venuesLoaded = false;
       venueSelect.innerHTML = '<option value="">Все площадки (кликни для загрузки)</option>';
 
-      // Populate competitor city dropdown (for Marketing mode)
-      if (selectedPurpose === 'marketing') {
-        document.getElementById('competitor-city').innerHTML = '<option value="">Выберите город</option>' +
-          cities.map(c => `<option value="${c}">${translateCity(c)} (${cityCounts[c]})</option>`).join('');
-        loadCompetitorGenres();
-      }
 
       // Load genres
       loadGenres();
@@ -2007,145 +1958,11 @@
     // Competitor Search (Marketing mode)
 
     // ========== COMPETITOR GENRE FILTER ==========
-    let selectedCompetitorGenres = [];
 
-    function updateCompetitorGenres() {
-      // This function is kept for backwards compatibility but not used
-      // Selection is now handled by toggleCompetitorGenreSelection()
-      updateCompetitorGenresDisplay();
-    }
 
-    function updateCompetitorGenresDisplay() {
-      const container = document.getElementById('selected-competitor-genres');
-      container.innerHTML = '';
 
-      selectedCompetitorGenres.forEach(genre => {
-        const tag = document.createElement('div');
-        tag.className = 'genre-tag';
-        tag.innerHTML = `
-          ${escapeHtml(genre)}
-          <span class="remove" data-genre="${escapeAttr(genre)}">×</span>
-        `;
-        container.appendChild(tag);
-      });
 
-      // Add click handlers for removal
-      document.querySelectorAll('#selected-competitor-genres .remove').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const genre = this.getAttribute('data-genre');
-          removeCompetitorGenre(genre);
-        });
-      });
-    }
 
-    function removeCompetitorGenre(genre) {
-      selectedCompetitorGenres = selectedCompetitorGenres.filter(g => g !== genre);
-      updateCompetitorGenresDisplay();
-      updateCompetitorGenreDropdownText();
-    }
-
-    function loadCompetitorGenres() {
-      try {
-        const genreCounts = {};
-        allData.forEach(e => {
-          if (e.genre && e.genre.trim()) {
-            const genre = e.genre.trim();
-            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
-          }
-        });
-
-        const genres = Object.keys(genreCounts).sort((a, b) => {
-          const countDiff = genreCounts[b] - genreCounts[a];
-          return countDiff !== 0 ? countDiff : a.localeCompare(b);
-        });
-
-        const optionsList = document.getElementById('competitor-genre-options-list');
-        if (optionsList) {
-          optionsList.innerHTML = genres.map(g => `
-            <div class="dropdown-option" data-genre="${escapeAttr(g)}">
-              <span class="dropdown-option-checkbox"></span>
-              <span>${escapeHtml(g)} (${genreCounts[g]})</span>
-            </div>
-          `).join('');
-
-          // Add click handlers using event delegation
-          optionsList.querySelectorAll('.dropdown-option').forEach(opt => {
-            opt.addEventListener('click', function() {
-              const genre = this.getAttribute('data-genre');
-              toggleCompetitorGenreSelection(genre);
-            });
-          });
-
-          updateCompetitorGenreDropdownText();
-        }
-
-      } catch (error) {
-        console.error('Error loading competitor genres:', error);
-      }
-    }
-
-    function searchCompetitors() {
-      const targetDate = document.getElementById('competitor-date').value;
-      const targetCity = document.getElementById('competitor-city').value;
-
-      if (!targetDate) {
-        alert('Укажите дату события');
-        return;
-      }
-      if (!targetCity) {
-        alert('Выберите город');
-        return;
-      }
-
-      const currency = CURRENCY[selectedRegion];
-
-      // Find competitors: events in same city that overlap with target date
-      // Event matches if:
-      // 1. date_from equals target date, OR
-      // 2. target date falls between date_from and date_to (for shows with date ranges)
-      const competitors = allData.filter(e => {
-        if (e.city !== targetCity) return false;
-
-        const dateFrom = e.date_from;
-        const dateTo = e.date_to || e.date_from; // If no date_to, use date_from
-
-        if (!dateFrom) return false;
-
-        // Check if target date falls within event's date range
-        return targetDate >= dateFrom && targetDate <= dateTo;
-      });
-
-      // Display results
-      document.getElementById('competitor-date-display').textContent = targetDate;
-      document.getElementById('competitor-city-display').textContent = targetCity;
-      document.getElementById('competitor-count').textContent = competitors.length;
-
-      const listEl = document.getElementById('competitor-list');
-
-      if (competitors.length === 0) {
-        listEl.innerHTML = '<p style="color:#666;font-size:13px;padding:10px 0;">🎉 Отлично! Конкурентов не найдено на эту дату в этом городе.</p>';
-      } else {
-        listEl.innerHTML = competitors.map(e => {
-          const dateRange = e.date_to && e.date_to !== e.date_from
-            ? `${e.date_from} — ${e.date_to}`
-            : e.date_from;
-          return `
-            <div class="competitor-card">
-              <div class="competitor-info">
-                <div class="competitor-event-title">${e.url ? `<a href="${e.url}" target="_blank">${escapeHtml(e.title)}</a>` : escapeHtml(e.title)}</div>
-                <div class="competitor-meta">${escapeHtml(e.venue) || '—'}</div>
-              </div>
-              <div class="competitor-dates">
-                <div>${dateRange}</div>
-                <div class="competitor-price">${getPrice(e.price).toLocaleString()} ${currency}</div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      document.getElementById('competitor-results').classList.add('active');
-    }
 
     // Comment Modal
     let currentEditId = null;
@@ -2500,68 +2317,9 @@
       });
     }
 
-    function toggleCompetitorGenreDropdown() {
-      const dropdown = document.getElementById('competitor-genre-dropdown-content');
-      if (!dropdown) return;
-      const header = dropdown.previousElementSibling;
-      const isOpen = dropdown.style.display === 'block';
 
-      // Close all dropdowns first
-      document.querySelectorAll('.custom-dropdown-content').forEach(d => d.style.display = 'none');
-      document.querySelectorAll('.custom-dropdown-header').forEach(h => h.classList.remove('open'));
 
-      if (!isOpen) {
-        dropdown.style.display = 'block';
-        if (header) header.classList.add('open');
-        const searchBox = document.getElementById('competitor-genre-search');
-        if (searchBox) searchBox.focus();
-      }
-    }
 
-    function toggleCompetitorGenreSelection(genre) {
-      const idx = selectedCompetitorGenres.indexOf(genre);
-      if (idx === -1) {
-        selectedCompetitorGenres.push(genre);
-      } else {
-        selectedCompetitorGenres.splice(idx, 1);
-      }
-      updateCompetitorGenresDisplay();
-      updateCompetitorGenreDropdownText();
-    }
-
-    function updateCompetitorGenreDropdownText() {
-      const text = document.getElementById('competitor-genre-dropdown-text');
-      if (!text) return;
-
-      if (selectedCompetitorGenres.length === 0) {
-        text.textContent = 'Все жанры';
-      } else if (selectedCompetitorGenres.length === 1) {
-        text.textContent = selectedCompetitorGenres[0];
-      } else {
-        text.textContent = `Выбрано: ${selectedCompetitorGenres.length}`;
-      }
-
-      // Update checkboxes
-      document.querySelectorAll('#competitor-genre-options-list .dropdown-option').forEach(opt => {
-        const genre = opt.getAttribute('data-genre');
-        if (selectedCompetitorGenres.includes(genre)) {
-          opt.classList.add('selected');
-        } else {
-          opt.classList.remove('selected');
-        }
-      });
-    }
-
-    function filterCompetitorGenreOptions() {
-      const search = document.getElementById('competitor-genre-search');
-      if (!search) return;
-      const searchText = search.value.toLowerCase();
-
-      document.querySelectorAll('#competitor-genre-options-list .dropdown-option').forEach(opt => {
-        const text = opt.textContent.toLowerCase();
-        opt.style.display = text.includes(searchText) ? 'flex' : 'none';
-      });
-    }
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
