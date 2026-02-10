@@ -701,15 +701,24 @@
       color: #fff;
       border: 2px solid #00ff00;
       cursor: pointer;
-      height: 38px;
-      max-height: 200px;
-      overflow-y: auto;
+      height: auto;
+      min-height: 38px;
+      max-height: 38px;
+      overflow: hidden;
       font-family: inherit;
       font-size: 11px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ff00' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 30px;
     }
 
-    #filter-genre[size], #competitor-genre[size] {
-      height: auto;
+    #filter-genre:focus, #competitor-genre:focus {
+      max-height: 200px;
+      overflow-y: auto;
     }
 
     #filter-genre option {
@@ -1013,7 +1022,7 @@
         </div>
         <div class="filter-group">
           <label>Жанр</label>
-          <select id="competitor-genre" size="1" multiple onchange="updateCompetitorGenres()">
+          <select id="competitor-genre" multiple onchange="updateCompetitorGenres()">
             <option value="">Все жанры</option>
           </select>
           <div id="selected-competitor-genres" class="selected-items"></div>
@@ -1063,7 +1072,7 @@
         </div>
         <div class="filter-group">
           <label>Жанр</label>
-          <select id="filter-genre" size="1" multiple onchange="updateSelectedGenres()">
+          <select id="filter-genre" multiple onchange="updateSelectedGenres()">
             <option value="">Все жанры</option>
           </select>
           <div id="selected-genres" class="selected-items"></div>
@@ -1487,7 +1496,7 @@
         });
 
         const genreSelect = document.getElementById('filter-genre');
-        genreSelect.innerHTML = '<option value="">Все жанры (' + genres.length + ')</option>' +
+        genreSelect.innerHTML = '<option value="" selected>Все жанры (' + genres.length + ')</option>' +
           genres.map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)} (${genreCounts[g]})</option>`).join('');
 
       } catch (error) {
@@ -1737,7 +1746,7 @@
         <div class="table-container" id="table-scroll-container">
           <table>
             <thead><tr>
-              <th>Название</th><th>Площадка</th><th>Город</th><th>Дата с</th><th>Дата по</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
+              <th>Название</th><th>Площадка</th><th>Город</th><th>Жанр</th><th>Дата с</th><th>Дата по</th><th>Добавлено</th><th>Комментарий</th><th style="text-align:right">Цена</th>
             </tr></thead>
             <tbody id="table-body">${rows}</tbody>
           </table>
@@ -1959,7 +1968,7 @@
         });
 
         const genreSelect = document.getElementById('competitor-genre');
-        genreSelect.innerHTML = '<option value="">Все жанры (' + genres.length + ')</option>' +
+        genreSelect.innerHTML = '<option value="" selected>Все жанры (' + genres.length + ')</option>' +
           genres.map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)} (${genreCounts[g]})</option>`).join('');
 
       } catch (error) {
@@ -2265,12 +2274,13 @@
       }
 
       const currency = CURRENCY[selectedRegion];
-      const headers = ['Название', 'Площадка', 'Город', 'Дата', 'Дата до', 'Добавлено', 'Цена (' + currency + ')', 'URL', 'Комментарий'];
+      const headers = ['Название', 'Площадка', 'Город', 'Жанр', 'Дата', 'Дата до', 'Добавлено', 'Цена (' + currency + ')', 'URL', 'Комментарий'];
 
       const rows = filteredData.map(e => [
         (e.title || '').replace(/"/g, '""'),
         (e.venue || '').replace(/"/g, '""'),
         (e.city || '').replace(/"/g, '""'),
+        (e.genre || '').replace(/"/g, '""'),
         e.date_from || '',
         e.date_to || '',
         e.created_at ? e.created_at.substring(0, 10) : '',
