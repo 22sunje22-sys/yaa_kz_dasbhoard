@@ -694,16 +694,22 @@
     }
 
     /* Multi-select genre filter styles */
-    #filter-genre {
+    #filter-genre, #competitor-genre {
       width: 100%;
       padding: 8px;
       background: #1a1a1a;
       color: #fff;
       border: 2px solid #00ff00;
       cursor: pointer;
-      max-height: 150px;
+      height: 38px;
+      max-height: 200px;
       overflow-y: auto;
       font-family: inherit;
+      font-size: 11px;
+    }
+
+    #filter-genre[size], #competitor-genre[size] {
+      height: auto;
     }
 
     #filter-genre option {
@@ -1003,7 +1009,7 @@
         </div>
         <div class="filter-group">
           <label>Жанр</label>
-          <select id="competitor-genre" multiple onchange="updateCompetitorGenres()">
+          <select id="competitor-genre" size="1" multiple onchange="updateCompetitorGenres()">
             <option value="">Все жанры</option>
           </select>
           <div id="selected-competitor-genres" class="selected-items"></div>
@@ -1053,7 +1059,7 @@
         </div>
         <div class="filter-group">
           <label>Жанр</label>
-          <select id="filter-genre" multiple onchange="updateSelectedGenres()">
+          <select id="filter-genre" size="1" multiple onchange="updateSelectedGenres()">
             <option value="">Все жанры</option>
           </select>
           <div id="selected-genres" class="selected-items"></div>
